@@ -1,0 +1,17 @@
+---
+version: "3"
+services:
+  client:
+    build:
+      dockerfile: ./build/client/Dockerfile
+      context: .
+    image: client
+    ports:
+      - 8080:80
+  server:
+    build:
+      dockerfile: ./build/server/dockerfile
+      context: .
+    image: server
+    ports:
+      - 8888:80

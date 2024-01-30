@@ -8,11 +8,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go env -w CGO_ENABLED=0 &&\
-    GOOS=js GOARCH=wasm go build -o ./static/game.wasm ./cmd/game/main.go &&\
-    go build -o ./server ./cmd/server/main.go
+ENV CGO_ENABLED=0
 
-FROM gcr.io/distroless/static-debian12:nonroot-amd64
+RUN GOOS=js GOARCH=wasm go build -o ./static/game.wasm ./cmd/game/main.go &&\
+    go build -o ./client ./cmd/client/main.go
+
+FROM gcr.io/distroless/static-debian12:debug-nonroot-amd64
 
 LABEL org.opencontainers.image.source=https://github.com/gcleroux/Projet-H24
 LABEL org.opencontainers.image.description="Testing WASM code in docker"
@@ -20,8 +21,8 @@ LABEL org.opencontainers.image.description="Testing WASM code in docker"
 WORKDIR /app
 
 COPY --from=build /app/static ./static
-COPY --from=build /app/server ./
+COPY --from=build /app/client ./
 
 EXPOSE 80
 
-ENTRYPOINT [ "/app/server" ]
+ENTRYPOINT [ "/app/client" ]
