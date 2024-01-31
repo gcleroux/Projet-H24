@@ -8,6 +8,8 @@ services:
     image: client
     ports:
       - 8080:80
+    depends_on:
+      - server
   server:
     build:
       dockerfile: ./build/server/Dockerfile

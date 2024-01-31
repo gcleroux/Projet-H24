@@ -23,9 +23,9 @@ type Position struct {
 }
 
 type Game struct {
-	player        *Player
-	input         *InputHandler
-	publishConn   *websocket.Conn
+	player *Player
+	input  *InputHandler
+	// publishConn   *websocket.Conn
 	subscribeConn *websocket.Conn
 	otherPlayers  map[string]Position
 }
@@ -34,10 +34,10 @@ func (g *Game) Update() error {
 	g.input.Update()
 	g.player.Update(g.input.Keys)
 
-	// Send player's position to the server
-	if err := wsjson.Write(context.Background(), g.publishConn, Position{X: g.player.Position.X, Y: g.player.Position.Y}); err != nil {
-		return err
-	}
+	// // Send player's position to the server
+	// if err := wsjson.Write(context.Background(), g.publishConn, Position{X: g.player.Position.X, Y: g.player.Position.Y}); err != nil {
+	// 	return err
+	// }
 	return nil
 }
 
@@ -75,7 +75,7 @@ func Run() error {
 	// Initialize the WebSocket connections
 	// publishConn, _, err := websocket.Dial(context.Background(), "ws://localhost:8888/publish", nil)
 	// if err != nil {
-	// 	return err
+	// return err
 	// }
 
 	subscribeConn, _, err := websocket.Dial(
@@ -93,6 +93,7 @@ func Run() error {
 		input:  &InputHandler{},
 		// publishConn:   publishConn,
 		subscribeConn: subscribeConn,
+		otherPlayers:  make(map[string]Position),
 	}
 	go func() {
 		for {
@@ -104,7 +105,7 @@ func Run() error {
 			}
 
 			// Update the positions of other players.
-			g.otherPlayers["other"] = Position{X: float64(pos.X), Y: float64(pos.Y)}
+			g.otherPlayers["other"] = Position{X: pos.X, Y: pos.Y}
 		}
 	}()
 	if err := ebiten.RunGame(g); err != nil {

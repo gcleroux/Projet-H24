@@ -15,8 +15,8 @@ import (
 )
 
 type position struct {
-	X float32 `json:"x"`
-	Y float32 `json:"y"`
+	X float64 `json:"x"`
+	Y float64 `json:"y"`
 }
 
 // Player represents a connected player with its WebSocket connection and position.
@@ -75,7 +75,9 @@ func (gs *gameServer) publishHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c, err := websocket.Accept(w, r, nil)
+	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		OriginPatterns: []string{"localhost:8080"},
+	})
 	if err != nil {
 		http.Error(w, "Could not upgrade to WebSocket connection", http.StatusInternalServerError)
 		return
