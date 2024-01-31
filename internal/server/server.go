@@ -4,48 +4,44 @@ import (
 	"context"
 	"errors"
 	"log"
-	"net"
 	"net/http"
 	"sync"
 	"time"
 
-	"golang.org/x/time/rate"
+	"github.com/google/uuid"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
 )
 
-type position struct {
+type Position struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
 }
 
-// Player represents a connected player with its WebSocket connection and position.
+// Player represents a player with x and y coordinates.
 type Player struct {
-	pos       chan position
-	closeSlow func()
+	ID uuid.UUID
+	Position
 }
 
 type gameServer struct {
-	playerPositionBuffer int
-	publishLimiter       *rate.Limiter
-	logf                 func(f string, v ...interface{})
-	serveMux             http.ServeMux
-	playersMu            sync.Mutex
-	players              map[*Player]struct{}
+	serveMux      http.ServeMux
+	logf          func(f string, v ...interface{})
+	connections   map[*websocket.Conn]struct{}
+	connectionsMu sync.Mutex
+	players       map[uuid.UUID]Player
+	playersMu     sync.Mutex
 }
 
-func NewGameServer(publishRate int) *gameServer {
+func NewGameServer() *gameServer {
 	gs := &gameServer{
-		playerPositionBuffer: 16,
-		logf:                 log.Printf,
-		players:              make(map[*Player]struct{}),
-		publishLimiter: rate.NewLimiter(
-			rate.Every(time.Second/time.Duration(publishRate)),
-			8,
-		),
+		logf:          log.Printf,
+		connections:   make(map[*websocket.Conn]struct{}),
+		connectionsMu: sync.Mutex{},
+		players:       make(map[uuid.UUID]Player),
+		playersMu:     sync.Mutex{},
 	}
-	gs.serveMux.Handle("/subscribe", http.HandlerFunc(gs.subscribeHandler))
-	gs.serveMux.Handle("/publish", http.HandlerFunc(gs.publishHandler))
+	gs.serveMux.Handle("/position", http.HandlerFunc(gs.positionHandler))
 
 	return gs
 }
@@ -54,8 +50,8 @@ func (gs *gameServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	gs.serveMux.ServeHTTP(w, r)
 }
 
-func (gs *gameServer) subscribeHandler(w http.ResponseWriter, r *http.Request) {
-	err := gs.subscribe(r.Context(), w, r)
+func (gs *gameServer) positionHandler(w http.ResponseWriter, r *http.Request) {
+	err := gs.position(r.Context(), w, r)
 	if errors.Is(err, context.Canceled) {
 		return
 	}
@@ -69,125 +65,114 @@ func (gs *gameServer) subscribeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (gs *gameServer) publishHandler(w http.ResponseWriter, r *http.Request) {
-	if r.Method != "POST" {
-		http.Error(w, http.StatusText(http.StatusMethodNotAllowed), http.StatusMethodNotAllowed)
-		return
-	}
-
-	c, err := websocket.Accept(w, r, &websocket.AcceptOptions{
-		OriginPatterns: []string{"localhost:8080"},
-	})
-	if err != nil {
-		http.Error(w, "Could not upgrade to WebSocket connection", http.StatusInternalServerError)
-		return
-	}
-	defer c.CloseNow()
-
-	ctx, cancel := context.WithTimeout(r.Context(), time.Second*5)
-	defer cancel()
-
-	playerPosition := position{}
-
-	err = wsjson.Read(ctx, c, &playerPosition)
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-
-	gs.publish(playerPosition)
-
-	w.WriteHeader(http.StatusAccepted)
-}
-
-func (gs *gameServer) subscribe(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
-	var mu sync.Mutex
-	var c *websocket.Conn
-	var closed bool
-
-	p := &Player{
-		pos: make(chan position, gs.playerPositionBuffer),
-		closeSlow: func() {
-			mu.Lock()
-			defer mu.Unlock()
-			closed = true
-			if c != nil {
-				c.Close(
-					websocket.StatusPolicyViolation,
-					"connection too slow to keep up with messages",
-				)
-			}
-		},
-	}
-
-	gs.addPlayer(p)
-	defer gs.deletePlayer(p)
-
-	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+func (gs *gameServer) position(ctx context.Context, w http.ResponseWriter, r *http.Request) error {
+	gs.logf("Received /position call from %s", r.Host)
+	conn, err := websocket.Accept(w, r, &websocket.AcceptOptions{
 		OriginPatterns: []string{"localhost:8080"},
 	})
 	if err != nil {
 		return err
 	}
-	mu.Lock()
-	if closed {
-		mu.Unlock()
-		return net.ErrClosed
-	}
-	c = c2
-	mu.Unlock()
-	defer c.CloseNow()
+	defer conn.CloseNow()
 
-	ctx = c.CloseRead(ctx)
+	gs.addConn(conn)
+	defer gs.deleteConn(conn)
 
 	for {
-		select {
-		case pos := <-p.pos:
-			err := writeTimeout(ctx, time.Second*5, c, pos)
-			if err != nil {
-				return err
-			}
-		case <-ctx.Done():
-			return ctx.Err()
+		var player Player
+
+		// Read the message from the WebSocket connection.
+		err := wsjson.Read(ctx, conn, &player)
+		if err != nil {
+			gs.logf("[gs.position]: %v", err)
+			return err
+		}
+		// Update the player's position.
+		gs.addPlayer(player)
+		gs.publish(ctx, player)
+	}
+}
+
+func (gs *gameServer) publish(ctx context.Context, player Player) {
+	for _, conn := range gs.getConns() {
+		err := wsjson.Write(ctx, conn, &player)
+		if err != nil {
+			gs.logf("[gs.publish]: %v", err)
 		}
 	}
 }
 
-func (gs *gameServer) publish(pos position) {
+func (gs *gameServer) publishPositions() {
+	for {
+		select {
+		case <-time.After(time.Second / 60): // Send updates at a rate of 60 ticks per second.
+			gs.broadcast()
+		default:
+		}
+	}
+}
+
+func (gs *gameServer) broadcast() {
+	ctx := context.Background()
+
+	// Send the positions to each connected client.
+	for _, conn := range gs.getConns() {
+		for _, player := range gs.getPlayers() {
+			err := wsjson.Write(ctx, conn, &player)
+			if err != nil {
+				gs.logf("%v", err)
+			}
+		}
+	}
+}
+
+func (gs *gameServer) addConn(conn *websocket.Conn) {
+	gs.connectionsMu.Lock()
+	gs.connections[conn] = struct{}{}
+	gs.connectionsMu.Unlock()
+	gs.logf("Connection added: total %d", len(gs.getConns()))
+}
+
+func (gs *gameServer) deleteConn(conn *websocket.Conn) {
+	gs.connectionsMu.Lock()
+	delete(gs.connections, conn)
+	gs.connectionsMu.Unlock()
+	gs.logf("Connection removed: total %d", len(gs.getConns()))
+}
+
+func (gs *gameServer) addPlayer(p Player) {
+	gs.playersMu.Lock()
+	gs.players[p.ID] = p
+	gs.playersMu.Unlock()
+	gs.logf("addPlayer: total %d", len(gs.getPlayers()))
+	gs.logf("Player update: %s to [ %0.2f, %0.2f ]", p.ID.String(), p.X, p.Y)
+}
+
+func (gs *gameServer) deletePlayer(p Player) {
+	gs.playersMu.Lock()
+	delete(gs.players, p.ID)
+	gs.playersMu.Unlock()
+	gs.logf("deletePlayer: total %d", len(gs.getPlayers()))
+}
+
+func (gs *gameServer) getConns() []*websocket.Conn {
+	gs.connectionsMu.Lock()
+	defer gs.connectionsMu.Unlock()
+
+	conns := make([]*websocket.Conn, 0, len(gs.connections))
+	for c := range gs.connections {
+		conns = append(conns, c)
+	}
+	return conns
+}
+
+func (gs *gameServer) getPlayers() []Player {
 	gs.playersMu.Lock()
 	defer gs.playersMu.Unlock()
 
-	gs.publishLimiter.Wait(context.Background())
-
-	for p := range gs.players {
-		select {
-		case p.pos <- pos:
-		default:
-			go p.closeSlow()
-		}
+	players := make([]Player, 0, len(gs.players))
+	for _, p := range gs.players {
+		players = append(players, p)
 	}
-}
-
-func (gs *gameServer) addPlayer(p *Player) {
-	gs.playersMu.Lock()
-	gs.players[p] = struct{}{}
-	gs.playersMu.Unlock()
-}
-
-func (gs *gameServer) deletePlayer(p *Player) {
-	gs.playersMu.Lock()
-	delete(gs.players, p)
-	gs.playersMu.Unlock()
-}
-
-func writeTimeout(
-	ctx context.Context,
-	timeout time.Duration,
-	c *websocket.Conn,
-	pos position,
-) error {
-	ctx, cancel := context.WithTimeout(ctx, timeout)
-	defer cancel()
-
-	return wsjson.Write(ctx, c, pos)
+	return players
 }

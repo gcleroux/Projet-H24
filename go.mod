@@ -3,8 +3,8 @@ module github.com/gcleroux/Projet-H24
 go 1.21.4
 
 require (
+	github.com/google/uuid v1.6.0
 	github.com/hajimehoshi/ebiten/v2 v2.6.4
-	golang.org/x/time v0.5.0
 	nhooyr.io/websocket v1.8.10
 )
 

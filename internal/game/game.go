@@ -4,7 +4,10 @@ import (
 	"context"
 	"fmt"
 	"image/color"
+	"log"
 
+	"github.com/gcleroux/Projet-H24/internal/server"
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
@@ -23,21 +26,29 @@ type Position struct {
 }
 
 type Game struct {
-	player *Player
-	input  *InputHandler
-	// publishConn   *websocket.Conn
-	subscribeConn *websocket.Conn
-	otherPlayers  map[string]Position
+	ID           uuid.UUID
+	player       *Player
+	input        *InputHandler
+	conn         *websocket.Conn
+	otherPlayers map[uuid.UUID]Position
 }
 
 func (g *Game) Update() error {
 	g.input.Update()
 	g.player.Update(g.input.Keys)
 
-	// // Send player's position to the server
-	// if err := wsjson.Write(context.Background(), g.publishConn, Position{X: g.player.Position.X, Y: g.player.Position.Y}); err != nil {
-	// 	return err
-	// }
+	// Send player's position to the server
+	err := wsjson.Write(
+		context.Background(),
+		g.conn,
+		&server.Player{
+			ID:       g.ID,
+			Position: server.Position(g.player.Position),
+		},
+	)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -72,46 +83,45 @@ func Run() error {
 	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
 	ebiten.SetWindowTitle("Multiplayer 2D cube")
 
-	// Initialize the WebSocket connections
-	// publishConn, _, err := websocket.Dial(context.Background(), "ws://localhost:8888/publish", nil)
-	// if err != nil {
-	// return err
-	// }
-
-	subscribeConn, _, err := websocket.Dial(
+	conn, _, err := websocket.Dial(
 		context.Background(),
-		"ws://localhost:8888/subscribe",
+		"ws://localhost:8888/position",
 		nil,
 	)
 	if err != nil {
-		// publishConn.Close(websocket.StatusNormalClosure, "subscribe connection failed")
 		return err
 	}
+	defer conn.Close(websocket.StatusNormalClosure, "subscribe closed")
 
 	g := &Game{
-		player: NewPlayer(screenWidth/2, screenHeight/2, 8),
-		input:  &InputHandler{},
-		// publishConn:   publishConn,
-		subscribeConn: subscribeConn,
-		otherPlayers:  make(map[string]Position),
+		ID:           uuid.New(),
+		player:       NewPlayer(screenWidth/2, screenHeight/2, 8),
+		input:        &InputHandler{},
+		conn:         conn,
+		otherPlayers: make(map[uuid.UUID]Position),
 	}
-	go func() {
+
+	go func(id uuid.UUID) {
 		for {
-			var pos Position
-			err := wsjson.Read(context.Background(), subscribeConn, &pos)
+			var resp server.Player
+			err := wsjson.Read(context.Background(), conn, &resp)
 			if err != nil {
+				log.Printf("%v", err)
 				// Handle the error (e.g., log it) and break the loop if needed.
 				break
 			}
+			log.Print("Got position for player: ", resp.ID)
 
-			// Update the positions of other players.
-			g.otherPlayers["other"] = Position{X: pos.X, Y: pos.Y}
+			if resp.ID != id {
+				// Update the positions of other players.
+				g.otherPlayers[resp.ID] = Position{X: resp.X, Y: resp.Y}
+			}
+
 		}
-	}()
+	}(g.ID)
+
 	if err := ebiten.RunGame(g); err != nil {
 		return err
 	}
-	// publishConn.Close(websocket.StatusNormalClosure, "publish closed")
-	subscribeConn.Close(websocket.StatusNormalClosure, "subscribe closed")
 	return nil
 }
