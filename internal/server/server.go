@@ -121,7 +121,9 @@ func (gs *gameServer) subscribe(ctx context.Context, w http.ResponseWriter, r *h
 	gs.addPlayer(p)
 	defer gs.deletePlayer(p)
 
-	c2, err := websocket.Accept(w, r, nil)
+	c2, err := websocket.Accept(w, r, &websocket.AcceptOptions{
+		OriginPatterns: []string{"localhost:8080"},
+	})
 	if err != nil {
 		return err
 	}

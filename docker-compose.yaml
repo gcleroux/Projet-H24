@@ -10,7 +10,7 @@ services:
       - 8080:80
   server:
     build:
-      dockerfile: ./build/server/dockerfile
+      dockerfile: ./build/server/Dockerfile
       context: .
     image: server
     ports:
