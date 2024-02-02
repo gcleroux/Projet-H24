@@ -1,0 +1,8 @@
+*
+!static/
+!scripts/
+!internal/
+!cmd/
+!build/
+!go.mod
+!go.sum

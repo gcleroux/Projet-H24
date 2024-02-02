@@ -6,14 +6,14 @@ services:
       dockerfile: ./build/client/Dockerfile
       context: .
     image: client
+    container_name: client
     ports:
       - 8080:80
-    depends_on:
-      - server
   server:
     build:
       dockerfile: ./build/server/Dockerfile
       context: .
     image: server
+    container_name: server
     ports:
       - 8888:80

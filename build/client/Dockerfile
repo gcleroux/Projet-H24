@@ -8,20 +8,21 @@ RUN go mod download
 
 COPY . .
 
-ENV CGO_ENABLED=0
+RUN GOOS=js GOARCH=wasm go build -o out/assets/game.wasm ./cmd/game/main.go &&\
+    go build -o out/client ./cmd/client/main.go
 
-RUN GOOS=js GOARCH=wasm go build -o ./static/game.wasm ./cmd/game/main.go &&\
-    go build -o ./client ./cmd/client/main.go
+RUN cp $(go env GOROOT)/misc/wasm/wasm_exec.js out/assets/
 
-FROM gcr.io/distroless/static-debian12:debug-nonroot-amd64
+RUN cp -r ./static/. out/assets/
+
+FROM gcr.io/distroless/base-debian12:debug-nonroot-amd64
 
 LABEL org.opencontainers.image.source=https://github.com/gcleroux/Projet-H24
 LABEL org.opencontainers.image.description="Testing WASM code in docker"
 
 WORKDIR /app
 
-COPY --from=build /app/static ./static
-COPY --from=build /app/client ./
+COPY --chown=nonroot --from=build /app/out ./
 
 EXPOSE 80
 
