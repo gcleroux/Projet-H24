@@ -19,7 +19,7 @@ WORKDIR /app
 
 COPY --from=build /app/server ./
 
-EXPOSE 80
+EXPOSE 8888
 
 ENTRYPOINT [ "/app/server" ]
 

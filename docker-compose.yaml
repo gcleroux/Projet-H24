@@ -8,12 +8,10 @@ services:
     image: client
     container_name: client
     ports:
-      - 8080:80
+      - 8080:8080
   server:
     build:
       dockerfile: ./build/server/Dockerfile
       context: .
     image: server
     container_name: server
-    ports:
-      - 8888:80

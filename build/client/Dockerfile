@@ -24,6 +24,6 @@ WORKDIR /app
 
 COPY --chown=nonroot --from=build /app/out ./
 
-EXPOSE 80
+EXPOSE 8080
 
 ENTRYPOINT [ "/app/client" ]

@@ -1,0 +1,9 @@
+---
+apiVersion: kustomize.config.k8s.io/v1alpha1
+kind: Component
+
+resources:
+  - ip-address-pool.yaml
+  - server-deployment.yaml
+  - client-deployment.yaml
+  - ingress.yaml
