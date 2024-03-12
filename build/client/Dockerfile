@@ -8,7 +8,7 @@ RUN go mod download
 
 COPY . .
 
-RUN GOOS=js GOARCH=wasm go build -o out/assets/game.wasm ./cmd/game/main.go &&\
+RUN GOOS=js GOARCH=wasm SERVER=$SERVER go build -o out/assets/game.wasm ./cmd/game/main.go &&\
     go build -o out/client ./cmd/client/main.go
 
 RUN cp $(go env GOROOT)/misc/wasm/wasm_exec.js out/assets/

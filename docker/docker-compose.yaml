@@ -1,0 +1,20 @@
+---
+version: "3"
+services:
+  rtc-client:
+    build:
+      dockerfile: Dockerfile.client
+      context: .
+    image: rtc-client
+    container_name: rtc-client
+    ports:
+      - 8081:8081
+
+  rtc-server:
+    build:
+      dockerfile: Dockerfile.server
+      context: .
+    image: rtc-server
+    container_name: rtc-server
+    ports:
+      - 8080:8080

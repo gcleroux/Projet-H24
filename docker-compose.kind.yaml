@@ -1,0 +1,19 @@
+---
+version: "3"
+services:
+  client:
+    build:
+      dockerfile: ./build/client/Dockerfile
+      context: .
+    image: localhost:5001/client:v1
+    ports:
+      - 8080:8080
+    depends_on:
+      - server
+  server:
+    build:
+      dockerfile: ./build/server/Dockerfile
+      context: .
+    image: localhost:5001/server:v1
+    ports:
+      - 8888:8888

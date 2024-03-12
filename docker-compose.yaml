@@ -5,13 +5,37 @@ services:
     build:
       dockerfile: ./build/client/Dockerfile
       context: .
+      args:
+        SERVER: 172.69.10.10
     image: client
     container_name: client
     ports:
       - 8080:8080
+    networks:
+      ws-network:
+        aliases:
+          - client
+
   server:
     build:
       dockerfile: ./build/server/Dockerfile
       context: .
     image: server
     container_name: server
+    hostname: server
+    networks:
+      ws-network:
+        ipv4_address: 172.69.10.10
+        aliases:
+          - server
+          - srv
+
+networks:
+  ws-network:
+    name: ws-network
+    ipam:
+      driver: default
+      config:
+        - subnet: "172.69.0.0/16"
+          aux_addresses:
+            srv: 172.69.10.10

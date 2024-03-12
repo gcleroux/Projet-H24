@@ -6,6 +6,6 @@ import (
 )
 
 func main() {
-	err := http.ListenAndServe(":8080", http.FileServer(http.Dir("./assets")))
+	err := http.ListenAndServe("0.0.0.0:8080", http.FileServer(http.Dir("./assets")))
 	log.Fatalln(err)
 }

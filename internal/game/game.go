@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"image/color"
+	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -27,7 +28,7 @@ type Game struct {
 }
 
 func NewGame() (*Game, error) {
-	network, err := NewWebSocketNetworkHandler("ws://localhost:8888/position")
+	network, err := NewWebSocketNetworkHandler("ws://" + os.Getenv("SERVER") + ":8080/position")
 	if err != nil {
 		return nil, err
 	}
