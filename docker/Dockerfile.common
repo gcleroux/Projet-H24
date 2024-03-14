@@ -1,0 +1,54 @@
+ARG NODE_VERSION=16.20
+ARG ALPINE_VERSION=3.18
+ARG GOLANG_VERSION=1.20.14
+
+FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION} AS node
+
+FROM golang:${GOLANG_VERSION}-alpine${ALPINE_VERSION}
+
+RUN apk add --no-cache bash gcompat git
+
+ENV GOOS=js
+ENV GOARCH=wasm
+ENV PATH=/go/bin/js_wasm:$PATH
+
+COPY --from=node /usr/lib /usr/lib
+COPY --from=node /usr/local/lib /usr/local/lib
+COPY --from=node /usr/local/include /usr/local/include
+COPY --from=node /usr/local/bin /usr/local/bin
+
+WORKDIR /client
+
+COPY ./common .
+RUN npm install node-pre-gyp wrtc@0.4.7 --force
+
+RUN go mod download github.com/pion/webrtc/v4/examples/data-channels@latest
+
+ENTRYPOINT [ "./go_js_wasm_exec" ]
+
+#
+#
+# RUN yarn -v
+#
+# CMD ["node", "path/to/your/script.js"]
+#
+# FROM golang:1.20.14-bookworm
+#
+# # ENV setup
+# ENV NODE_PATH=/usr/local/lib/nodejs
+# ENV PATH=${NODE_PATH}/bin:$PATH
+#
+# WORKDIR /webrtc
+# COPY ./webrtc ./xz-utils_5.4.1-0.2_amd64.deb ./
+#
+# # Node deps
+# RUN DEBIAN_FRONTEND=noninteractive apt-get -y install --no-install-recommends ./xz-utils_5.4.1-0.2_amd64.deb
+# RUN apt-get clean && rm -rf /var/lib/apt/lists/* ./xz-utils_5.4.1-0.2_amd64.deb
+#
+# # Installing node
+# RUN VERSION=v16.20.2 DISTRO=linux-x64 && mkdir -p ${NODE_PATH} &&\
+#     curl -O https://nodejs.org/download/release/$VERSION/node-$VERSION-$DISTRO.tar.xz && \
+#     tar -xJvf node-$VERSION-$DISTRO.tar.xz -C $NODE_PATH --strip-components 1 &&\ 
+#     rm -rf node-$VERSION-$DISTRO.tar.xz
+#
+# # pion/webRTC depends on wrtc since node doesn't ship with a peerConnection API

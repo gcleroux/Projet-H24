@@ -11,9 +11,9 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"github.com/pion/ice/v2"
+	"github.com/pion/ice/v3"
 	"github.com/pion/logging"
-	"github.com/pion/stun"
+	"github.com/pion/stun/v2"
 )
 
 // ICEGatherer gathers local host, server reflexive and relay
@@ -122,6 +122,7 @@ func (g *ICEGatherer) createAgent() error {
 		UDPMux:                 g.api.settingEngine.iceUDPMux,
 		ProxyDialer:            g.api.settingEngine.iceProxyDialer,
 		DisableActiveTCP:       g.api.settingEngine.iceDisableActiveTCP,
+		MaxBindingRequests:     g.api.settingEngine.iceMaxBindingRequests,
 	}
 
 	requestedNetworkTypes := g.api.settingEngine.candidates.ICENetworkTypes

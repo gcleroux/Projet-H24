@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/pion/rtp"
-	"github.com/pion/transport/v2/test"
+	"github.com/pion/transport/v3/test"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -33,7 +33,7 @@ func Test_TrackLocalStatic_NoCodecIntersection(t *testing.T) {
 		pc, err := NewPeerConnection(Configuration{})
 		assert.NoError(t, err)
 
-		noCodecPC, err := NewAPI().NewPeerConnection(Configuration{})
+		noCodecPC, err := NewAPI(WithMediaEngine(&MediaEngine{})).NewPeerConnection(Configuration{})
 		assert.NoError(t, err)
 
 		_, err = pc.AddTrack(track)

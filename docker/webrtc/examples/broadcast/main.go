@@ -9,17 +9,21 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
 	"io"
 
 	"github.com/pion/interceptor"
 	"github.com/pion/interceptor/pkg/intervalpli"
-	"github.com/pion/webrtc/v3"
-	"github.com/pion/webrtc/v3/examples/internal/signal"
+	"github.com/pion/webrtc/v4"
+	"github.com/pion/webrtc/v4/examples/internal/signal"
 )
 
 func main() { // nolint:gocognit
-	sdpChan := signal.HTTPSDPServer()
+	port := flag.Int("port", 8080, "http server port")
+	flag.Parse()
+
+	sdpChan := signal.HTTPSDPServer(*port)
 
 	// Everything below is the Pion WebRTC API, thanks for using it ❤️.
 	offer := webrtc.SessionDescription{}
