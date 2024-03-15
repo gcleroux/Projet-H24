@@ -3,17 +3,17 @@ version: "3"
 services:
   client:
     build:
-      dockerfile: ./build/client/Dockerfile
+      dockerfile: ./docker/client/Dockerfile
       context: .
     image: client
     container_name: client
     ports:
-      - 8080:80
+      - 8080:8080
   server:
     build:
-      dockerfile: ./build/server/Dockerfile
+      dockerfile: ./docker/server/Dockerfile
       context: .
     image: server
     container_name: server
     ports:
-      - 8888:80
+      - 8888:8080
