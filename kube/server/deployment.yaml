@@ -1,0 +1,21 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: online-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: online-server
+  template:
+    metadata:
+      labels:
+        app: online-server
+    spec:
+      containers:
+        - name: online-server
+          image: localhost:5001/online-server:v1
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080

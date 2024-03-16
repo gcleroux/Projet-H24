@@ -7,7 +7,7 @@
     inputs.flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import inputs.nixpkgs { inherit system; };
-        buildDeps = with pkgs; [ git go ];
+        buildDeps = with pkgs; [ git go kubectl k9s kind ];
         xorgLibs = with pkgs; [
           xorg.libX11.dev
           xorg.libXrandr

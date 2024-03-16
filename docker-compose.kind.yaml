@@ -6,18 +6,19 @@ services:
       args:
         # Change this URL to your local IP to allow
         # access from different devices
-        SERVER_URL: "http://localhost:8888"
+        SERVER_URL: "http://localhost/server"
       dockerfile: ./docker/client/Dockerfile
       context: .
-    image: ghcr.io/gcleroux/online-game-client:latest
+    image: localhost:5001/online-client:v1
     container_name: client
     ports:
-      - 8080:8080
+      - "8080"
+
   server:
     build:
       dockerfile: ./docker/server/Dockerfile
       context: .
-    image: ghcr.io/gcleroux/online-game-server:latest
+    image: localhost:5001/online-server:v1
     container_name: server
     ports:
-      - 8888:8080
+      - "8080"

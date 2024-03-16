@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/gcleroux/Projet-H24/config"
 	"github.com/gcleroux/Projet-H24/internal/game/characters"
 	"github.com/gcleroux/Projet-H24/internal/server/messages"
 	"github.com/google/uuid"
@@ -38,7 +39,7 @@ func NewWebSocketNetworkHandler(id uuid.UUID) (*WebSocketNetworkHandler, error) 
 
 // Opens the connection with the remote server
 func (ws *WebSocketNetworkHandler) Open() error {
-	conn, _, err := websocket.Dial(context.Background(), SERVER_URL, nil)
+	conn, _, err := websocket.Dial(context.Background(), config.SERVER_URL+"/position", nil)
 	if err != nil {
 		return err
 	}
