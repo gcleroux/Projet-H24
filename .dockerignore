@@ -1,8 +1,16 @@
-*
-!static/
-!scripts/
-!internal/
-!cmd/
-!build/
-!go.mod
-!go.sum
+# Git files
+.git/
+.github/
+.gitignore
+
+# Build files
+docker/
+
+# Nix files
+.direnv/
+.envrc
+flake.nix
+flake.lock
+
+scripts/
+README.md

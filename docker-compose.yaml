@@ -3,11 +3,13 @@ version: "3"
 services:
   client:
     build:
-      dockerfile: ./build/client/Dockerfile
-      context: .
       args:
-        SERVER: 172.69.10.10
-    image: client
+        # Change this URL to your local IP to allow
+        # access from different devices
+        SERVER_URL: "http://localhost:8888"
+      dockerfile: ./docker/client/Dockerfile
+      context: .
+    image: ghcr.io/gcleroux/online-game-client:latest
     container_name: client
     ports:
       - 8080:8080
@@ -18,24 +20,9 @@ services:
 
   server:
     build:
-      dockerfile: ./build/server/Dockerfile
+      dockerfile: ./docker/server/Dockerfile
       context: .
-    image: server
+    image: ghcr.io/gcleroux/online-game-server:latest
     container_name: server
-    hostname: server
-    networks:
-      ws-network:
-        ipv4_address: 172.69.10.10
-        aliases:
-          - server
-          - srv
-
-networks:
-  ws-network:
-    name: ws-network
-    ipam:
-      driver: default
-      config:
-        - subnet: "172.69.0.0/16"
-          aux_addresses:
-            srv: 172.69.10.10
+    ports:
+      - 8888:8080

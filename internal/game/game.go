@@ -5,9 +5,12 @@ import (
 	"image/color"
 	"os"
 
+	"github.com/gcleroux/Projet-H24/internal/game/characters"
+	"github.com/gcleroux/Projet-H24/internal/game/input"
+	"github.com/gcleroux/Projet-H24/internal/game/networking"
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
 const (
@@ -15,32 +18,37 @@ const (
 	screenHeight = 240
 )
 
-type Position struct {
-	X float64
-	Y float64
-}
+// Generate a new ID for the game client at runtime
+var id uuid.UUID = uuid.New()
 
 // TODO: Refactor the Game struct to use interfaces in all fields
 type Game struct {
-	player  *Player
-	input   *InputHandler
-	network NetworkHandler
+	id      uuid.UUID
+	player  *characters.PlayableCharacter
+	input   input.InputHandler
+	network networking.NetworkHandler
 }
 
 func NewGame() (*Game, error) {
-	network, err := NewWebSocketNetworkHandler("ws://" + os.Getenv("SERVER") + ":8080/position")
+	// Init the game ID
+	network, err := networking.NewWebSocketNetworkHandler(id)
 	if err != nil {
 		return nil, err
 	}
 
 	g := &Game{
-		player: NewPlayer(screenWidth/2, screenHeight/2, 8),
-		input: &InputHandler{
-			Keys: []ebiten.Key{},
-		},
+		id: id,
+		player: characters.NewPlayableCharacter(
+			screenWidth/2,
+			screenHeight/2,
+			8,
+			screenWidth,
+			screenHeight,
+		),
+		input:   &input.KeyboardInputHandler{},
 		network: network,
 	}
-	if err := g.network.WritePlayerPosition(g.player.Position); err != nil {
+	if err := g.network.SendPlayerPosition(g.player.X, g.player.Y); err != nil {
 		return nil, err
 	}
 
@@ -49,14 +57,15 @@ func NewGame() (*Game, error) {
 
 func (g *Game) Update() error {
 	g.input.Update()
-	if err := g.player.Update(g.input.Keys); err != nil {
-		return err
-	}
+
+	playerMoved := g.player.Update(g.input.LastPressedInputs())
 
 	// Send player's position to the server
-	err := g.network.WritePlayerPosition(g.player.Position)
-	if err != nil {
-		return err
+	if playerMoved {
+		err := g.network.SendPlayerPosition(g.player.X, g.player.Y)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -65,16 +74,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.Gray{128})
 	g.player.Draw(screen)
 
-	for _, p := range g.network.GetPeersPosition() {
-		vector.DrawFilledRect(
-			screen,
-			float32(p.X),
-			float32(p.Y),
-			8,
-			8,
-			color.RGBA{R: 255, G: 0, B: 0, A: 255},
-			false,
-		)
+	for _, p := range g.network.Peers() {
+		p.Draw(screen)
 	}
 
 	ebitenutil.DebugPrint(

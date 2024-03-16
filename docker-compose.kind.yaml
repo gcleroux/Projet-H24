@@ -3,17 +3,22 @@ version: "3"
 services:
   client:
     build:
-      dockerfile: ./build/client/Dockerfile
+      args:
+        # Change this URL to your local IP to allow
+        # access from different devices
+        SERVER_URL: "http://localhost/server"
+      dockerfile: ./docker/client/Dockerfile
       context: .
-    image: localhost:5001/client:v1
+    image: localhost:5001/online-client:v1
+    container_name: client
     ports:
-      - 8080:8080
-    depends_on:
-      - server
+      - "8080"
+
   server:
     build:
-      dockerfile: ./build/server/Dockerfile
+      dockerfile: ./docker/server/Dockerfile
       context: .
-    image: localhost:5001/server:v1
+    image: localhost:5001/online-server:v1
+    container_name: server
     ports:
-      - 8888:8888
+      - "8080"
