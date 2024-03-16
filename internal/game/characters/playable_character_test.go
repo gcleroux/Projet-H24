@@ -1,17 +1,18 @@
-package game_test
+package characters_test
 
 import (
 	"math"
 	"testing"
 
-	"github.com/gcleroux/Projet-H24/internal/game"
+	"github.com/gcleroux/Projet-H24/internal/game/characters"
 	"github.com/hajimehoshi/ebiten/v2"
 )
 
-func TestPlayer_Update(t *testing.T) {
+func TestPlayableCharacter_Update(t *testing.T) {
 	type fields struct {
 		Image       *ebiten.Image
-		Position    game.Position
+		X           float64
+		Y           float64
 		Speed       float64
 		Velocity    float64
 		UpperBoundX float64
@@ -30,8 +31,9 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Update with no inputs",
 			fields: fields{
-				Position: game.Position{100, 100},
-				Speed:    5.0,
+				X:     100.0,
+				Y:     100.0,
+				Speed: 5.0,
 			},
 			args: args{
 				inputs: []ebiten.Key{},
@@ -43,7 +45,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Update KeyW",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -58,7 +61,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Update KeyA",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -73,7 +77,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Update KeyS",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -88,7 +93,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Update KeyD",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -103,7 +109,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Two keys cancel each other",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -118,7 +125,8 @@ func TestPlayer_Update(t *testing.T) {
 		{
 			name: "Diagonal movement doesn't make you go faster",
 			fields: fields{
-				Position:    game.Position{100, 100},
+				X:           100.0,
+				Y:           100.0,
 				Speed:       5.0,
 				UpperBoundX: 200,
 				UpperBoundY: 200,
@@ -133,24 +141,24 @@ func TestPlayer_Update(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := &game.Player{
+			p := &characters.PlayableCharacter{
 				Image:       tt.fields.Image,
-				Position:    tt.fields.Position,
+				X:           tt.fields.X,
+				Y:           tt.fields.Y,
 				Speed:       tt.fields.Speed,
 				Velocity:    tt.fields.Velocity,
 				UpperBoundX: tt.fields.UpperBoundX,
 				UpperBoundY: tt.fields.UpperBoundY,
 			}
-			if err := p.Update(tt.args.inputs); (err != nil) != tt.wantErr {
-				t.Errorf("Player.Update() error = %v, wantErr %v", err, tt.wantErr)
-			}
+			// Update the player position
+			p.Update(tt.args.inputs)
 
 			// Check the actual position against the expected position
-			if p.Position.X != tt.wantX || p.Position.Y != tt.wantY {
+			if p.X != tt.wantX || p.Y != tt.wantY {
 				t.Errorf(
 					"Player position after update = (%v, %v), want (%v, %v)",
-					p.Position.X,
-					p.Position.Y,
+					p.X,
+					p.Y,
 					tt.wantX,
 					tt.wantY,
 				)
