@@ -1,0 +1,19 @@
+---
+version: "3"
+services:
+  client:
+    build:
+      dockerfile: ./docker/client/Dockerfile
+      context: .
+    image: ghcr.io/gcleroux/online-game-client:latest
+    container_name: client
+    ports:
+      - 8080:8080
+  server:
+    build:
+      dockerfile: ./docker/server/Dockerfile
+      context: .
+    image: ghcr.io/gcleroux/online-game-server:latest
+    container_name: server
+    ports:
+      - 8888:8080

@@ -2,8 +2,12 @@ package game
 
 import (
 	"fmt"
-	"image"
+	"image/color"
 
+	"github.com/gcleroux/Projet-H24/internal/game/characters"
+	"github.com/gcleroux/Projet-H24/internal/game/input"
+	"github.com/gcleroux/Projet-H24/internal/game/networking"
+	"github.com/google/uuid"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 )
@@ -13,55 +17,72 @@ const (
 	screenHeight = 240
 )
 
-type rand struct {
-	x, y, z, w uint32
-}
+// Generate a new ID for the game client at runtime
+var id uuid.UUID = uuid.New()
 
-func (r *rand) next() uint32 {
-	// math/rand is too slow to keep 60 FPS on web browsers.
-	// Use Xorshift instead: http://en.wikipedia.org/wiki/Xorshift
-	t := r.x ^ (r.x << 11)
-	r.x, r.y, r.z = r.y, r.z, r.w
-	r.w = (r.w ^ (r.w >> 19)) ^ (t ^ (t >> 8))
-	return r.w
-}
-
-var theRand = &rand{12345678, 4185243, 776511, 45411}
-
+// TODO: Refactor the Game struct to use interfaces in all fields
 type Game struct {
-	noiseImage *image.RGBA
+	id      uuid.UUID
+	player  *characters.PlayableCharacter
+	input   input.InputHandler
+	network networking.NetworkHandler
+}
+
+func NewGame() (*Game, error) {
+	// Init the game ID
+	network, err := networking.NewWebSocketNetworkHandler(id)
+	if err != nil {
+		return nil, err
+	}
+
+	g := &Game{
+		id: id,
+		player: characters.NewPlayableCharacter(
+			screenWidth/2,
+			screenHeight/2,
+			8,
+			screenWidth,
+			screenHeight,
+		),
+		input:   &input.KeyboardInputHandler{},
+		network: network,
+	}
+	if err := g.network.SendPlayerPosition(g.player.X, g.player.Y); err != nil {
+		return nil, err
+	}
+
+	return g, nil
 }
 
 func (g *Game) Update() error {
-	// Generate the noise with random RGB values.
-	const l = screenWidth * screenHeight
-	for i := 0; i < l; i++ {
-		x := theRand.next()
-		g.noiseImage.Pix[4*i] = uint8(x >> 24)
-		g.noiseImage.Pix[4*i+1] = uint8(x >> 16)
-		g.noiseImage.Pix[4*i+2] = uint8(x >> 8)
-		g.noiseImage.Pix[4*i+3] = 0xff
+	g.input.Update()
+
+	playerMoved := g.player.Update(g.input.LastPressedInputs())
+
+	// Send player's position to the server
+	if playerMoved {
+		err := g.network.SendPlayerPosition(g.player.X, g.player.Y)
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
-	screen.WritePixels(g.noiseImage.Pix)
-	ebitenutil.DebugPrint(screen, fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()))
+	screen.Fill(color.Gray{128})
+	g.player.Draw(screen)
+
+	for _, p := range g.network.Peers() {
+		p.Draw(screen)
+	}
+
+	ebitenutil.DebugPrint(
+		screen,
+		fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()),
+	)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
 	return screenWidth, screenHeight
-}
-
-func Run() error {
-	ebiten.SetWindowSize(screenWidth*2, screenHeight*2)
-	ebiten.SetWindowTitle("Noise (Ebitengine Demo)")
-	g := &Game{
-		noiseImage: image.NewRGBA(image.Rect(0, 0, screenWidth, screenHeight)),
-	}
-	if err := ebiten.RunGame(g); err != nil {
-		return err
-	}
-	return nil
 }

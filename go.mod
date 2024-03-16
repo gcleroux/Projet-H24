@@ -1,8 +1,12 @@
 module github.com/gcleroux/Projet-H24
 
-go 1.21.4
+go 1.21
 
-require github.com/hajimehoshi/ebiten/v2 v2.6.4
+require (
+	github.com/google/uuid v1.6.0
+	github.com/hajimehoshi/ebiten/v2 v2.6.4
+	nhooyr.io/websocket v1.8.10
+)
 
 require (
 	github.com/ebitengine/purego v0.5.0 // indirect

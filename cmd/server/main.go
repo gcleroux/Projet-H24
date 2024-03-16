@@ -1,19 +1,25 @@
 package main
 
 import (
-	"flag"
 	"log"
+	"net"
 	"net/http"
-)
 
-var (
-	listen = flag.String("listen", "0.0.0.0:80", "listen address")
-	dir    = flag.String("dir", "./static", "directory to serve")
+	"github.com/gcleroux/Projet-H24/internal/server"
 )
 
 func main() {
-	flag.Parse()
-	log.Printf("listening on http://%s", *listen)
-	err := http.ListenAndServe(*listen, http.FileServer(http.Dir(*dir)))
-	log.Fatalln(err)
+	l, err := net.Listen("tcp", ":8080")
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("listening on http://%v", l.Addr())
+
+	gs := server.NewGameServer()
+	s := &http.Server{
+		Handler: gs,
+	}
+	if err := s.Serve(l); err != nil {
+		log.Fatal(err)
+	}
 }
