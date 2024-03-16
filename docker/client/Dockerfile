@@ -1,19 +1,23 @@
 FROM golang:1.21.6-bookworm AS build
 
+ARG SERVER_URL
+
 WORKDIR /app
-
-COPY go.mod go.sum ./
-
-RUN go mod download
 
 COPY . .
 
-RUN GOOS=js GOARCH=wasm go build -o out/assets/game.wasm ./cmd/game/main.go &&\
-    go build -o out/client ./cmd/client/main.go
-
-RUN cp $(go env GOROOT)/misc/wasm/wasm_exec.js out/assets/
-
-RUN cp -r ./static/. out/assets/
+RUN GOOS=js GOARCH=wasm \
+    go build \
+    -ldflags="-X github.com/gcleroux/Projet-H24/config.SERVER_URL=${SERVER_URL}" \
+    -o out/assets/game.wasm \
+    ./cmd/game/main.go && \
+    \
+    go build \
+    -o out/client \
+    ./cmd/client/main.go && \
+    \
+    cp $(go env GOROOT)/misc/wasm/wasm_exec.js out/assets/ && \
+    cp -r ./static/. out/assets/
 
 FROM gcr.io/distroless/base-debian12:debug-nonroot-amd64
 
