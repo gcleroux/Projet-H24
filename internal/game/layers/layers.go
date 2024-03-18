@@ -4,6 +4,6 @@ import "github.com/yohamta/donburi/ecs"
 
 const (
 	LayerBackground ecs.LayerID = iota
-	// LayerActors
-	// LayerMetrics
+	LayerActors
+	LayerMetrics
 )

@@ -2,6 +2,7 @@ package archetypes
 
 import (
 	"github.com/gcleroux/Projet-H24/internal/game/components"
+	"github.com/gcleroux/Projet-H24/internal/game/layers"
 	"github.com/gcleroux/Projet-H24/internal/game/tags"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
@@ -47,7 +48,7 @@ func newArchetype(cs ...donburi.IComponentType) *archetype {
 
 func (a *archetype) Spawn(ecs *ecs.ECS, cs ...donburi.IComponentType) *donburi.Entry {
 	e := ecs.World.Entry(ecs.Create(
-		layers.Default,
+		layers.LayerActors,
 		append(a.components, cs...)...,
 	))
 	return e

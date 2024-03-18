@@ -1,25 +1,18 @@
 FROM golang:1.21.6-bookworm AS build
 
-WORKDIR /app
-
-COPY go.mod go.sum ./
-
-RUN go mod download
+WORKDIR /
 
 COPY . .
 
-RUN go build -o ./server ./cmd/server/main.go
+RUN CGO_ENABLED=0 go build -tags server -o server
 
-FROM gcr.io/distroless/base-debian12:debug-nonroot-amd64
+FROM gcr.io/distroless/static-debian12:nonroot-amd64
 
 LABEL org.opencontainers.image.source=https://github.com/gcleroux/Projet-H24
-LABEL org.opencontainers.image.description="Testing WASM code in docker"
+LABEL org.opencontainers.image.description="Server for Golang online multiplayer game"
 
-WORKDIR /app
-
-COPY --from=build /app/server ./
+COPY --chown=nonroot --from=build /server /server
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/server" ]
-
+ENTRYPOINT [ "/server" ]

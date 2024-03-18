@@ -1,13 +1,26 @@
 package main
 
 import (
+	"bytes"
+	_ "embed"
 	"image"
 	"log"
 
-	"github.com/gcleroux/Projet-H24/internal/game/config"
 	"github.com/gcleroux/Projet-H24/internal/game/scenes"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/spf13/viper"
 )
+
+//go:embed config.yaml
+var config []byte
+
+func init() {
+	viper.SetConfigType("yaml")
+	err := viper.ReadConfig(bytes.NewBuffer(config))
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
 type Scene interface {
 	Update()
@@ -44,10 +57,16 @@ func (g *Game) Layout(width, height int) (int, int) {
 }
 
 func main() {
-	cfg := config.NewConfig()
+	// Set the window dimensions
+	width, height := viper.GetInt("window.width"), viper.GetInt("window.height")
+	ebiten.SetWindowSize(width, height)
 
-	ebiten.SetWindowSize(cfg.Window.Width, cfg.Window.Height)
-	ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
+	// Set window's properties
+	if !viper.GetBool("window.resizable") {
+		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
+	}
+
+	// Start the game
 	if err := ebiten.RunGame(NewGame()); err != nil {
 		log.Fatal(err)
 	}
