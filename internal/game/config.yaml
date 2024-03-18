@@ -2,7 +2,7 @@
 window:
   width: 640
   height: 360
-  resizable: false
+  resizable: true
 remote_server:
   address: localhost
   port: 8888
