@@ -8,9 +8,8 @@ COPY . .
 
 RUN GOOS=js GOARCH=wasm \
     go build \
-    -ldflags="-X github.com/gcleroux/Projet-H24/config.SERVER_URL=${SERVER_URL}" \
     -o out/assets/game.wasm \
-    ./cmd/game/main.go && \
+    internal/game/main.go && \
     \
     go build \
     -o out/client \
