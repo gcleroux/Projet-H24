@@ -1,33 +1,20 @@
 FROM golang:1.21.6-bookworm AS build
 
-ARG SERVER_URL
-
-WORKDIR /app
+WORKDIR /
 
 COPY . .
 
-RUN GOOS=js GOARCH=wasm \
-    go build \
-    -ldflags="-X github.com/gcleroux/Projet-H24/config.SERVER_URL=${SERVER_URL}" \
-    -o out/assets/game.wasm \
-    ./cmd/game/main.go && \
-    \
-    go build \
-    -o out/client \
-    ./cmd/client/main.go && \
-    \
-    cp $(go env GOROOT)/misc/wasm/wasm_exec.js out/assets/ && \
-    cp -r ./static/. out/assets/
+RUN cp "$(go env GOROOT)"/misc/wasm/wasm_exec.js assets/ &&\
+    GOOS=js GOARCH=wasm go build -o assets/game.wasm internal/game/main.go &&\
+    CGO_ENABLED=0 go build -tags client -o client
 
-FROM gcr.io/distroless/base-debian12:debug-nonroot-amd64
+FROM gcr.io/distroless/static-debian12:nonroot-amd64
 
 LABEL org.opencontainers.image.source=https://github.com/gcleroux/Projet-H24
-LABEL org.opencontainers.image.description="Testing WASM code in docker"
+LABEL org.opencontainers.image.description="Client for Golang online multiplayer game"
 
-WORKDIR /app
-
-COPY --chown=nonroot --from=build /app/out ./
+COPY --chown=nonroot --from=build /client /client
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/client" ]
+ENTRYPOINT [ "/client" ]

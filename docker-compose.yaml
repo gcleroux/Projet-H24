@@ -13,6 +13,7 @@ services:
     container_name: client
     ports:
       - 8080:8080
+
   server:
     build:
       dockerfile: ./docker/server/Dockerfile

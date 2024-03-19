@@ -1,0 +1,9 @@
+---
+window:
+  width: 1920
+  height: 1080
+  resizable: true
+remote_server:
+  address: localhost
+  port: 8888
+  route: /position
