@@ -20,11 +20,11 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
 
-	friction := 0.5
-	accel := 0.5 + friction
-	maxSpeed := 4.0
-	jumpSpd := 10.0
-	gravity := 0.75
+	friction := 1.5
+	accel := 1.5 + friction
+	maxSpeed := 8.0
+	jumpSpd := 20.0
+	gravity := 1.75
 
 	player.SpeedY += gravity
 	if player.WallSliding != nil && player.SpeedY > 1 {
