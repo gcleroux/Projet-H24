@@ -3,14 +3,10 @@ version: "3"
 services:
   client:
     build:
-      args:
-        # Change this URL to your local IP to allow
-        # access from different devices
-        SERVER_URL: "http://localhost:8888"
       dockerfile: ./docker/client/Dockerfile
       context: .
     image: ghcr.io/gcleroux/online-game-client:latest
-    container_name: client
+    container_name: local-client
     ports:
       - 8080:8080
 
@@ -19,6 +15,24 @@ services:
       dockerfile: ./docker/server/Dockerfile
       context: .
     image: ghcr.io/gcleroux/online-game-server:latest
-    container_name: server
+    container_name: local-server
     ports:
       - 8888:8080
+
+  # The kind services are used for local k8s testing with kind
+  kind-client:
+    build:
+      dockerfile: ./docker/client/Dockerfile
+      context: .
+    image: localhost:5001/online-game-client:v1
+    container_name: kind-client
+    ports:
+      - "8080"
+  kind-server:
+    build:
+      dockerfile: ./docker/server/Dockerfile
+      context: .
+    image: localhost:5001/online-game-server:v1
+    container_name: kind-server
+    ports:
+      - "8080"

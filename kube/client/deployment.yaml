@@ -2,20 +2,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: online-client
+  name: online-game-client
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: online-client
+      app: online-game-client
   template:
     metadata:
       labels:
-        app: online-client
+        app: online-game-client
     spec:
       containers:
-        - name: online-client
-          image: localhost:5001/online-client:v1
+        - name: online-game-client
+          image: localhost:5001/online-game-client:v1
           imagePullPolicy: Always
           ports:
             - containerPort: 8080

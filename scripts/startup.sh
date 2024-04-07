@@ -82,8 +82,8 @@ data:
 EOF
 
 # 6. Building the images and pushing to local registry
-docker compose -f docker-compose.kind.yaml build
-docker compose -f docker-compose.kind.yaml push
+docker compose build kind-client kind-server
+docker compose push kind-client kind-server
 
 # 7. Deploying LoadBalancer
 kubectl apply -f https://raw.githubusercontent.com/metallb/metallb/v0.13.7/config/manifests/metallb-native.yaml

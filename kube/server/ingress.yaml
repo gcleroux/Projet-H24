@@ -2,7 +2,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: online-server
+  name: online-game-server
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$2
 spec:
@@ -13,6 +13,6 @@ spec:
             path: /server(/|$)(.*)
             backend:
               service:
-                name: online-server
+                name: online-game-server
                 port:
                   number: 8080

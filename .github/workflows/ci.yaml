@@ -42,8 +42,8 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          docker compose build
-          docker compose push
+          docker compose build client server
+          docker compose push client server
           docker tag ghcr.io/gcleroux/online-game-client:latest ghcr.io/gcleroux/online-game-client:${{ github.sha }}
           docker tag ghcr.io/gcleroux/online-game-server:latest ghcr.io/gcleroux/online-game-server:${{ github.sha }}
           docker push ghcr.io/gcleroux/online-game-client:${{ github.sha }}

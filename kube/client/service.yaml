@@ -2,10 +2,10 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: online-client
+  name: online-game-client
 spec:
   selector:
-    app: online-client
+    app: online-game-client
   ports:
     - protocol: TCP
       port: 8080
