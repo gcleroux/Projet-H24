@@ -4,7 +4,9 @@ import (
 	"image/color"
 	"math"
 
+	"github.com/gcleroux/Projet-H24/api/v1"
 	"github.com/gcleroux/Projet-H24/internal/game/components"
+	"github.com/gcleroux/Projet-H24/internal/game/events"
 	dresolv "github.com/gcleroux/Projet-H24/internal/game/resolv"
 	"github.com/gcleroux/Projet-H24/internal/game/tags"
 	"github.com/hajimehoshi/ebiten/v2"
@@ -267,6 +269,19 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	if c := playerObject.Check(wallNext, 0, "solid"); player.WallSliding != nil && c == nil {
 		player.WallSliding = nil
 	}
+
+	// entry := components.Connection.MustFirst(ecs.World)
+	// components.Connection.Get(entry).Write(api.PlayerPosition{
+	// 	X: playerObject.Position.X,
+	// 	Y: playerObject.Position.Y,
+	// })
+	events.PlayerUpdateEvent.Publish(ecs.World, events.PlayerUpdate{
+		PlayerPosition: api.PlayerPosition{
+			X: playerObject.Position.X,
+			Y: playerObject.Position.Y,
+		},
+	})
+	events.PlayerUpdateEvent.ProcessEvents(ecs.World)
 }
 
 func DrawPlayer(ecs *ecs.ECS, screen *ebiten.Image) {

@@ -23,6 +23,11 @@ var (
 		components.Player,
 		components.Object,
 	)
+	Peer = newArchetype(
+		tags.Peer,
+		components.Peer,
+		components.Object,
+	)
 	Ramp = newArchetype(
 		tags.Ramp,
 		components.Object,
@@ -33,6 +38,9 @@ var (
 	Wall = newArchetype(
 		tags.Wall,
 		components.Object,
+	)
+	Connection = newArchetype(
+		components.Connection,
 	)
 )
 

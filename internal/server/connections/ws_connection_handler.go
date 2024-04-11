@@ -27,7 +27,7 @@ func NewWSConnectionHandler() *WSConnectionHandler {
 func (ws *WSConnectionHandler) Add(conn Connection) {
 	if c, ok := conn.(*WSConnection); ok {
 		ws.connectionsMu.Lock()
-		ws.connections[c] = c.ClientID
+		ws.connections[c] = c.ID
 		ws.connectionsMu.Unlock()
 
 		ws.logf("Connection added: total %d", len(ws.GetConns()))

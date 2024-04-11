@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"sync"
 
+	api "github.com/gcleroux/Projet-H24/api/v1"
 	"github.com/gcleroux/Projet-H24/internal/server/connections"
-	"github.com/gcleroux/Projet-H24/internal/server/messages"
 	"github.com/google/uuid"
 	"nhooyr.io/websocket"
 	"nhooyr.io/websocket/wsjson"
@@ -20,7 +20,7 @@ type gameServer struct {
 
 	connectionHandler connections.ConnectionHandler
 
-	players   map[uuid.UUID]messages.PlayerPositionMessage
+	players   map[uuid.UUID]api.PlayerPosition
 	playersMu sync.Mutex
 }
 
@@ -28,7 +28,7 @@ func NewGameServer() *gameServer {
 	gs := &gameServer{
 		logf:              log.Printf,
 		connectionHandler: connections.NewWSConnectionHandler(),
-		players:           make(map[uuid.UUID]messages.PlayerPositionMessage),
+		players:           make(map[uuid.UUID]api.PlayerPosition),
 		playersMu:         sync.Mutex{},
 	}
 
@@ -71,33 +71,43 @@ func (gs *gameServer) position(ctx context.Context, w http.ResponseWriter, r *ht
 	defer gs.connectionHandler.Remove(conn)
 
 	for {
-		var ppm messages.PlayerPositionMessage
+		var playerPos api.PlayerPosition
 
 		// Read the message from the WebSocket connection.
-		err := wsjson.Read(ctx, conn.Conn, &ppm)
+		err := wsjson.Read(ctx, conn.Conn, &playerPos)
 		if err != nil {
 			gs.logf("[gs.position]: %v", err)
 			return err
 		}
+
 		// Update the player's position.
-		gs.addPlayer(conn.ClientID, ppm)
-		gs.publish(ctx, ppm)
+		gs.addPlayer(conn.ID, playerPos)
+
+		peerPos := api.PeerPosition{
+			ID: conn.ID,
+			X:  playerPos.X,
+			Y:  playerPos.Y,
+		}
+		gs.publish(ctx, peerPos)
 	}
 }
 
-func (gs *gameServer) publish(ctx context.Context, ppm messages.PlayerPositionMessage) {
+func (gs *gameServer) publish(ctx context.Context, pp api.PeerPosition) {
 	for _, conn := range gs.connectionHandler.GetConns() {
 		if c, ok := conn.(*connections.WSConnection); ok {
-			err := wsjson.Write(ctx, c.Conn, ppm)
-			if err != nil {
-				gs.logf("[gs.publish]: %v", err)
+			// Exclude the original sender from broadcast
+			if pp.ID != c.ID {
+				err := wsjson.Write(ctx, c.Conn, pp)
+				if err != nil {
+					gs.logf("[gs.publish]: %v", err)
+				}
 			}
 		}
 	}
 }
 
-func (gs *gameServer) addPlayer(id uuid.UUID, ppm messages.PlayerPositionMessage) {
+func (gs *gameServer) addPlayer(id uuid.UUID, pp api.PlayerPosition) {
 	gs.playersMu.Lock()
-	gs.players[id] = ppm
+	gs.players[id] = pp
 	gs.playersMu.Unlock()
 }

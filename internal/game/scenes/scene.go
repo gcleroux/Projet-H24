@@ -1,8 +1,10 @@
 package scenes
 
 import (
+	"log"
 	"sync"
 
+	"github.com/gcleroux/Projet-H24/internal/game/events"
 	"github.com/gcleroux/Projet-H24/internal/game/factory"
 	"github.com/gcleroux/Projet-H24/internal/game/layers"
 	dresolv "github.com/gcleroux/Projet-H24/internal/game/resolv"
@@ -43,10 +45,16 @@ func (ps *PlatformerScene) configure() {
 	// ecs.AddRenderer(layers.Default, systems.DrawRamp)
 	// ecs.AddRenderer(layers.Default, systems.DrawFloatingPlatform)
 	ecs.AddRenderer(layers.LayerActors, systems.DrawPlayer)
+	ecs.AddRenderer(layers.LayerActors, systems.DrawPeer)
 	ecs.AddRenderer(layers.LayerBackground, systems.DrawBackground)
 	ecs.AddRenderer(layers.LayerDebug, systems.DrawDebug)
 
 	ps.ecs = ecs
+
+	log.Print("Registering Subscribers")
+	events.PeerUpdateEvent.Subscribe(ps.ecs.World, systems.PeerUpdateHandler)
+	events.PlayerUpdateEvent.Subscribe(ps.ecs.World, systems.PlayerUpdateHandler)
+	factory.CreateConnection(ps.ecs)
 
 	gw, gh := float64(viper.GetInt("window.width")), float64(viper.GetInt("window.height"))
 
@@ -70,6 +78,11 @@ func (ps *PlatformerScene) configure() {
 
 		// Create the Player. NewPlayer adds it to the world's Space.
 		factory.CreatePlayer(ps.ecs),
+
+		// Create the Peers
+		factory.CreatePeer(ps.ecs),
+		factory.CreatePeer(ps.ecs),
+		factory.CreatePeer(ps.ecs),
 
 		// Non-moving floating Platforms.
 		factory.CreatePlatform(ps.ecs, resolv.NewObject(352, 64, 48, 8, "platform")),
