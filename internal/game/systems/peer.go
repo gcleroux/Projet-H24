@@ -19,7 +19,7 @@ func DrawPeer(ecs *ecs.ECS, screen *ebiten.Image) {
 		// Only draw the peer when in game
 		if peer.Present {
 			o := dresolv.GetObject(e)
-			peerColor := color.RGBA{0, 255, 60, 255}
+			peerColor := color.RGBA{0, 100, 100, 255}
 			vector.DrawFilledRect(
 				screen,
 				float32(o.Position.X),

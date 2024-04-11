@@ -52,8 +52,8 @@ func (ps *PlatformerScene) configure() {
 	ps.ecs = ecs
 
 	log.Print("Registering Subscribers")
-	events.PeerUpdateEvent.Subscribe(ps.ecs.World, systems.PeerUpdateHandler)
-	events.PlayerUpdateEvent.Subscribe(ps.ecs.World, systems.PlayerUpdateHandler)
+	events.PeerUpdateEvent.Subscribe(ps.ecs.World, events.PeerUpdateHandler)
+	events.PlayerUpdateEvent.Subscribe(ps.ecs.World, events.PlayerUpdateHandler)
 	factory.CreateConnection(ps.ecs)
 
 	gw, gh := float64(viper.GetInt("window.width")), float64(viper.GetInt("window.height"))
@@ -80,6 +80,7 @@ func (ps *PlatformerScene) configure() {
 		factory.CreatePlayer(ps.ecs),
 
 		// Create the Peers
+		// TODO: Don't preallocate peers on the scene, or maybe wait for full lobby before loading scene
 		factory.CreatePeer(ps.ecs),
 		factory.CreatePeer(ps.ecs),
 		factory.CreatePeer(ps.ecs),

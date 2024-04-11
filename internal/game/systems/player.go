@@ -12,7 +12,6 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
-	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
 
@@ -270,11 +269,6 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		player.WallSliding = nil
 	}
 
-	// entry := components.Connection.MustFirst(ecs.World)
-	// components.Connection.Get(entry).Write(api.PlayerPosition{
-	// 	X: playerObject.Position.X,
-	// 	Y: playerObject.Position.Y,
-	// })
 	events.PlayerUpdateEvent.Publish(ecs.World, events.PlayerUpdate{
 		PlayerPosition: api.PlayerPosition{
 			X: playerObject.Position.X,
@@ -285,23 +279,17 @@ func UpdatePlayer(ecs *ecs.ECS) {
 }
 
 func DrawPlayer(ecs *ecs.ECS, screen *ebiten.Image) {
-	tags.Player.Each(ecs.World, func(e *donburi.Entry) {
-		player := components.Player.Get(e)
-		o := dresolv.GetObject(e)
-		playerColor := color.RGBA{0, 255, 60, 255}
-		if player.OnGround == nil {
-			// We draw the player as a different color when jumping so we can visually see when he's in the air.
-			playerColor = color.RGBA{200, 0, 200, 255}
-		}
+	e := tags.Player.MustFirst(ecs.World)
+	o := dresolv.GetObject(e)
+	playerColor := color.RGBA{0, 255, 60, 255}
 
-		vector.DrawFilledRect(
-			screen,
-			float32(o.Position.X),
-			float32(o.Position.Y),
-			float32(o.Size.X),
-			float32(o.Size.Y),
-			playerColor,
-			false,
-		)
-	})
+	vector.DrawFilledRect(
+		screen,
+		float32(o.Position.X),
+		float32(o.Position.Y),
+		float32(o.Size.X),
+		float32(o.Size.Y),
+		playerColor,
+		false,
+	)
 }

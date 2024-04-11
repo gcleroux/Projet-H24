@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"log"
-
 	"github.com/gcleroux/Projet-H24/internal/game/archetypes"
 	"github.com/gcleroux/Projet-H24/internal/game/components"
 	"github.com/gcleroux/Projet-H24/internal/game/events"
@@ -28,7 +26,6 @@ func CreateConnection(ecs *ecs.ECS) *donburi.Entry {
 	go func() {
 		for {
 			if pp, err := c.Read(); err == nil {
-				log.Print("Message received")
 				events.PeerUpdateEvent.Publish(ecs.World, events.PeerUpdate{
 					PeerPosition: pp,
 				})

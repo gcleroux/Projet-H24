@@ -12,6 +12,8 @@ import (
 func CreatePlayer(ecs *ecs.ECS) *donburi.Entry {
 	player := archetypes.Player.Spawn(ecs)
 
+	// TODO: We could add a resolv tag like "character" or "solid"
+	// TODO: The spawn coords should be assigned by the server
 	obj := resolv.NewObject(32, 128, 16, 24)
 	dresolv.SetObject(player, obj)
 	components.Player.SetValue(player, components.PlayerData{
