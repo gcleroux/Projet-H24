@@ -1,9 +1,35 @@
 ---
-window:
-  width: 640
-  height: 360
-  resizable: true
-remote_server:
+game:
+  settings:
+    window:
+      width: 640
+      height: 360
+      resizable: false
+
+    grid:
+      cell_size: 16
+      char_width: 16
+      char_height: 32
+
+    movement:
+      # Settings for character movement
+      max_speed: 8.0
+      jump_speed: 20.0
+      wall_speed: 5.0
+      friction: 1.5
+      acceleration: 3.0
+      gravity: 1.75
+
+  keyboard_mappings:
+    # WASD on kb to control
+    left: A
+    right: D
+    up: W
+    down: S
+    jump: SPACE
+    show_debug: F1
+
+server:
   address: localhost
   port: 8888
   route: /position

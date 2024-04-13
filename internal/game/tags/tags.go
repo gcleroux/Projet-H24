@@ -9,4 +9,5 @@ var (
 	FloatingPlatform = donburi.NewTag().SetName("FloatingPlatform")
 	Wall             = donburi.NewTag().SetName("Wall")
 	Ramp             = donburi.NewTag().SetName("Ramp")
+	Settings         = donburi.NewTag().SetName("Settings")
 )

@@ -2,24 +2,18 @@ package systems
 
 import (
 	"github.com/gcleroux/Projet-H24/internal/game/components"
-	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/gcleroux/Projet-H24/internal/game/tags"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/yohamta/donburi/ecs"
 )
 
 func UpdateSettings(ecs *ecs.ECS) {
-	settings := GetOrCreateSettings(ecs)
+	settings_entry, _ := tags.Settings.First(ecs.World)
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyF1) {
-		settings.Debug = !settings.Debug
+	settings := components.Settings.Get(settings_entry)
+	mappings := components.KbdInput.Get(settings_entry)
+
+	if inpututil.IsKeyJustPressed(mappings.ShowDebug) {
+		settings.ShowDebug = !settings.ShowDebug
 	}
-}
-
-func GetOrCreateSettings(ecs *ecs.ECS) *components.SettingsData {
-	if _, ok := components.Settings.First(ecs.World); !ok {
-		ecs.World.Create(components.Settings)
-	}
-
-	ent, _ := components.Settings.First(ecs.World)
-	return components.Settings.Get(ent)
 }

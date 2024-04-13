@@ -16,11 +16,13 @@ func CreatePlayer(ecs *ecs.ECS) *donburi.Entry {
 	// TODO: The spawn coords should be assigned by the server
 	obj := resolv.NewObject(32, 128, 16, 24)
 	dresolv.SetObject(player, obj)
+	obj.SetShape(resolv.NewRectangle(0, 0, 16, 24))
+
 	components.Player.SetValue(player, components.PlayerData{
 		FacingRight: true,
 	})
-
-	obj.SetShape(resolv.NewRectangle(0, 0, 16, 24))
+	components.Movement.SetValue(player, components.GetDefaultMovementConfig())
+	components.KbdInput.SetValue(player, components.GetDefaultKbdInputConfig())
 
 	return player
 }

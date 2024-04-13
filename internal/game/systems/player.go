@@ -20,59 +20,55 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	playerEntry, _ := components.Player.First(ecs.World)
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
+	movement := components.Movement.Get(playerEntry)
+	kbdMappings := components.KbdInput.Get(playerEntry)
 
-	friction := 1.5
-	accel := 1.5 + friction
-	maxSpeed := 8.0
-	jumpSpd := 20.0
-	gravity := 1.75
-
-	player.SpeedY += gravity
+	player.SpeedY += movement.Gravity
 	if player.WallSliding != nil && player.SpeedY > 1 {
 		player.SpeedY = 1
 	}
 
 	// Horizontal movement is only possible when not wallsliding.
 	if player.WallSliding == nil {
-		if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.GamepadAxisValue(0, 0) > 0.1 {
-			player.SpeedX += accel
+		if ebiten.IsKeyPressed(kbdMappings.Right) || ebiten.GamepadAxisValue(0, 0) > 0.1 {
+			player.SpeedX += movement.Acceleration
 			player.FacingRight = true
 		}
 
-		if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.GamepadAxisValue(0, 0) < -0.1 {
-			player.SpeedX -= accel
+		if ebiten.IsKeyPressed(kbdMappings.Left) || ebiten.GamepadAxisValue(0, 0) < -0.1 {
+			player.SpeedX -= movement.Acceleration
 			player.FacingRight = false
 		}
 	}
 
 	// Apply friction and horizontal speed limiting.
-	if player.SpeedX > friction {
-		player.SpeedX -= friction
-	} else if player.SpeedX < -friction {
-		player.SpeedX += friction
+	if player.SpeedX > movement.Friction {
+		player.SpeedX -= movement.Friction
+	} else if player.SpeedX < -movement.Friction {
+		player.SpeedX += movement.Friction
 	} else {
 		player.SpeedX = 0
 	}
 
-	if player.SpeedX > maxSpeed {
-		player.SpeedX = maxSpeed
-	} else if player.SpeedX < -maxSpeed {
-		player.SpeedX = -maxSpeed
+	if player.SpeedX > movement.MaxSpeed {
+		player.SpeedX = movement.MaxSpeed
+	} else if player.SpeedX < -movement.MaxSpeed {
+		player.SpeedX = -movement.MaxSpeed
 	}
 
 	// Check for jumping.
-	if inpututil.IsKeyJustPressed(ebiten.KeySpace) || ebiten.IsGamepadButtonPressed(0, 0) ||
+	if inpututil.IsKeyJustPressed(kbdMappings.Jump) || ebiten.IsGamepadButtonPressed(0, 0) ||
 		ebiten.IsGamepadButtonPressed(1, 0) {
-		if (ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.GamepadAxisValue(0, 1) > 0.1 || ebiten.GamepadAxisValue(1, 1) > 0.1) &&
+		if (ebiten.IsKeyPressed(kbdMappings.Down) || ebiten.GamepadAxisValue(0, 1) > 0.1 || ebiten.GamepadAxisValue(1, 1) > 0.1) &&
 			player.OnGround != nil &&
 			player.OnGround.HasTags("platform") {
 			player.IgnorePlatform = player.OnGround
 		} else {
 			if player.OnGround != nil {
-				player.SpeedY = -jumpSpd
+				player.SpeedY = -movement.JumpSpeed
 			} else if player.WallSliding != nil {
 				// WALLJUMPING
-				player.SpeedY = -jumpSpd
+				player.SpeedY = -movement.JumpSpeed
 
 				if player.WallSliding.Position.X > playerObject.Position.X {
 					player.SpeedX = -4

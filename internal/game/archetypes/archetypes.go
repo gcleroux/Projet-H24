@@ -21,6 +21,8 @@ var (
 	Player = newArchetype(
 		tags.Player,
 		components.Player,
+		components.KbdInput,
+		components.Movement,
 		components.Object,
 	)
 	Peer = newArchetype(
@@ -41,6 +43,11 @@ var (
 	)
 	Connection = newArchetype(
 		components.Connection,
+	)
+	Settings = newArchetype(
+		tags.Settings,
+		components.Settings,
+		components.KbdInput,
 	)
 )
 

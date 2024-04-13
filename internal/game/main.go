@@ -61,11 +61,15 @@ func (g *Game) Layout(width, height int) (int, int) {
 
 func main() {
 	// Set the window dimensions
-	width, height := viper.GetInt("window.width"), viper.GetInt("window.height")
+	width, height := viper.GetInt(
+		"game.settings.window.width",
+	), viper.GetInt(
+		"game.settings.window.height",
+	)
 	ebiten.SetWindowSize(width, height)
 
 	// Set window's properties
-	if !viper.GetBool("window.resizable") {
+	if !viper.GetBool("game.settings.window.resizable") {
 		ebiten.SetWindowResizingMode(ebiten.WindowResizingModeDisabled)
 	}
 

@@ -14,8 +14,8 @@ import (
 )
 
 func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
-	settings := GetOrCreateSettings(ecs)
-	if !settings.Debug {
+	settings := components.Settings.Get(tags.Settings.MustFirst(ecs.World))
+	if !settings.ShowDebug {
 		return
 	}
 	ebitenutil.DebugPrint(
