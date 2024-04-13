@@ -17,7 +17,11 @@ import (
 
 func UpdatePlayer(ecs *ecs.ECS) {
 	// Now we update the Player's movement. This is the real bread-and-butter of this example, naturally.
-	playerEntry, _ := components.Player.First(ecs.World)
+	playerEntry, ok := components.Player.First(ecs.World)
+	if !ok {
+		return
+	}
+
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
 	movement := components.Movement.Get(playerEntry)
@@ -271,7 +275,6 @@ func UpdatePlayer(ecs *ecs.ECS) {
 			Y: playerObject.Position.Y,
 		},
 	})
-	events.PlayerUpdateEvent.ProcessEvents(ecs.World)
 }
 
 func DrawPlayer(ecs *ecs.ECS, screen *ebiten.Image) {

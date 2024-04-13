@@ -8,7 +8,10 @@ import (
 )
 
 func UpdateSettings(ecs *ecs.ECS) {
-	settings_entry, _ := tags.Settings.First(ecs.World)
+	settings_entry, ok := tags.Settings.First(ecs.World)
+	if !ok {
+		return
+	}
 
 	settings := components.Settings.Get(settings_entry)
 	mappings := components.KbdInput.Get(settings_entry)

@@ -25,20 +25,15 @@ func init() {
 	}
 }
 
-type Scene interface {
-	Update()
-	Draw(screen *ebiten.Image)
-}
-
 type Game struct {
 	bounds image.Rectangle
-	scene  Scene
+	scene  scenes.Scene
 }
 
 func NewGame() *Game {
 	g := &Game{
 		bounds: image.Rectangle{},
-		scene:  &scenes.PlatformerScene{},
+		scene:  scenes.NewSceneManager(),
 	}
 
 	return g

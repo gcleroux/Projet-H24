@@ -14,7 +14,11 @@ import (
 )
 
 func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
-	settings := components.Settings.Get(tags.Settings.MustFirst(ecs.World))
+	settings_entry, ok := tags.Settings.First(ecs.World)
+	if !ok {
+		return
+	}
+	settings := components.Settings.Get(settings_entry)
 	if !settings.ShowDebug {
 		return
 	}

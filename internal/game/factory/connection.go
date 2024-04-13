@@ -1,10 +1,14 @@
 package factory
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/gcleroux/Projet-H24/internal/game/archetypes"
 	"github.com/gcleroux/Projet-H24/internal/game/components"
 	"github.com/gcleroux/Projet-H24/internal/game/events"
 	"github.com/gcleroux/Projet-H24/internal/networking"
+	"github.com/spf13/viper"
 	"github.com/yohamta/donburi"
 	"github.com/yohamta/donburi/ecs"
 )
@@ -18,9 +22,14 @@ func CreateConnection(ecs *ecs.ECS) *donburi.Entry {
 
 	// Create the connection with the server
 	c := components.Connection.Get(conn)
-	err := c.Open("ws://localhost:8888/position")
-	if err != nil {
-		panic(err)
+	remote_addr := fmt.Sprintf(
+		"ws://%s:%d%s",
+		viper.GetString("server.address"),
+		viper.GetInt("server.port"),
+		viper.GetString("server.route"),
+	)
+	if err := c.Open(remote_addr); err != nil {
+		log.Fatal(err)
 	}
 
 	go func() {
@@ -29,7 +38,6 @@ func CreateConnection(ecs *ecs.ECS) *donburi.Entry {
 				events.PeerUpdateEvent.Publish(ecs.World, events.PeerUpdate{
 					PeerPosition: pp,
 				})
-				events.PeerUpdateEvent.ProcessEvents(ecs.World)
 			}
 		}
 	}()
