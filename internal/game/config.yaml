@@ -5,6 +5,7 @@ game:
       width: 640
       height: 360
       resizable: false
+      runnable_unfocused: true
       latency_update_frame: 30
 
     grid:

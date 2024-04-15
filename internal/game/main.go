@@ -62,6 +62,7 @@ func main() {
 		"game.settings.window.height",
 	)
 	ebiten.SetWindowSize(width, height)
+	ebiten.SetRunnableOnUnfocused(viper.GetBool("game.settings.window.runnable_unfocused"))
 
 	// Set window's properties
 	if !viper.GetBool("game.settings.window.resizable") {
