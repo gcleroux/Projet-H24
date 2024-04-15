@@ -5,6 +5,10 @@ Le jeu est un platformer multijoueur en temps réel facilement déployable local
 
 Certaines limitations sont inévitables dû à la nature de WASM qui est lui-même un projet en phase expérimentale.
 
+### Pour un bref moment, le jeu sera disponible en ligne à l'aide d'un déploiement avec Kubernetes
+
+Vous pouvez accéder au jeu en suivant le lien suivant: [http://online-client.cleroux.dev](http://online-client.cleroux.dev)
+
 ## Requirements
 
 Pour rouler le projet plus facilement, les applications sont offertes sous forme de docker container

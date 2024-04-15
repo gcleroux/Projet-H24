@@ -52,7 +52,7 @@ func newNetworkClient() *NetworkClient {
 	}
 
 	dial_addr := fmt.Sprintf(
-		"ws://%s:%d%s",
+		"wss://%s:%d%s",
 		Cfg.GetString("remote_address"),
 		Cfg.GetInt("port"),
 		Cfg.GetString("route"),

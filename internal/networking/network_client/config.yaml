@@ -1,6 +1,6 @@
 ---
-remote_address: 35.243.185.173
-port: 80
+remote_address: online-server.cleroux.dev
+port: 443
 route: /ws
 
 connection:
