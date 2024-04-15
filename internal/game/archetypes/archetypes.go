@@ -13,11 +13,6 @@ var (
 		tags.Platform,
 		components.Object,
 	)
-	FloatingPlatform = newArchetype(
-		tags.FloatingPlatform,
-		components.Object,
-		components.Tween,
-	)
 	Player = newArchetype(
 		tags.Player,
 		components.Player,

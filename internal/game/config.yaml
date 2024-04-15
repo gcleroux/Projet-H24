@@ -2,14 +2,14 @@
 game:
   settings:
     window:
-      width: 640
-      height: 360
+      width: 800
+      height: 450
       resizable: false
       runnable_unfocused: true
       latency_update_frame: 30
 
     grid:
-      cell_size: 16.0
+      cell_size: 20.0
 
     movement:
       # Settings for character movement

@@ -62,6 +62,9 @@ func main() {
 		"game.settings.window.height",
 	)
 	ebiten.SetWindowSize(width, height)
+
+	// This actually won't work, the browser will stop rendering the game when it goes out
+	// of focus. To run two games at the same time on the same device, you will need two windows
 	ebiten.SetRunnableOnUnfocused(viper.GetBool("game.settings.window.runnable_unfocused"))
 
 	// Set window's properties

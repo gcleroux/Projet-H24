@@ -37,14 +37,13 @@ func (s *Level_00_Scene) configure() {
 
 	// Update systems
 	ecs.AddSystem(systems.UpdatePlayer)
-	// ecs.AddSystem(systems.UpdatePeer)
-	// ecs.AddSystem(systems.UpdateConnection)
 	ecs.AddSystem(systems.UpdateObjects)
 	ecs.AddSystem(systems.UpdateSettings)
 
 	// Rendering systems
 	ecs.AddRenderer(layers.LayerActors, systems.DrawWall)
 	ecs.AddRenderer(layers.LayerActors, systems.DrawPlatform)
+	ecs.AddRenderer(layers.LayerActors, systems.DrawRamp)
 	ecs.AddRenderer(layers.LayerActors, systems.DrawPlayer)
 	ecs.AddRenderer(layers.LayerActors, systems.DrawPeer)
 	ecs.AddRenderer(layers.LayerBackground, systems.DrawBackground)
@@ -62,9 +61,9 @@ func (s *Level_00_Scene) configure() {
 		Y: gh - (settings.CellSize * 2),
 	})
 
-	// Define the world's Space. Here, a Space is essentially a grid, made up of settings.CellSizexsettings.CellSize cells. Each cell can have 0 or more Objects within it,
-	// and collisions can be found by checking the Space to see if the Cells at specific positions contain (or would contain) Objects. This is a broad, simplified approach to collision
-	// detection.
+	// Define the world's Space. Here, a Space is essentially a grid, made up of settings.CellSizexsettings.CellSize cells.
+	// Each cell can have 0 or more Objects within it, and collisions can be found by checking the Space to see if the Cells
+	// at specific positions contain (or would contain) Objects. This is a broad, simplified approach to collision detection.
 	space := factory.CreateSpace(s.ecs)
 
 	dresolv.Add(
@@ -143,7 +142,7 @@ func (s *Level_00_Scene) configure() {
 			resolv.NewObject(
 				gh-(settings.CellSize/2),
 				settings.CellSize*4,
-				settings.CellSize*3,
+				settings.CellSize*6,
 				settings.CellSize/2,
 				"platform",
 			),
@@ -153,7 +152,7 @@ func (s *Level_00_Scene) configure() {
 			resolv.NewObject(
 				gh-(settings.CellSize/2),
 				settings.CellSize*8,
-				settings.CellSize*3,
+				settings.CellSize*6,
 				settings.CellSize/2,
 				"platform",
 			),
@@ -163,7 +162,7 @@ func (s *Level_00_Scene) configure() {
 			resolv.NewObject(
 				gh-(settings.CellSize/2),
 				settings.CellSize*12,
-				settings.CellSize*3,
+				settings.CellSize*6,
 				settings.CellSize/2,
 				"platform",
 			),
@@ -173,9 +172,20 @@ func (s *Level_00_Scene) configure() {
 			resolv.NewObject(
 				gh-(settings.CellSize/2),
 				settings.CellSize*16,
-				settings.CellSize*3,
+				settings.CellSize*6,
 				settings.CellSize/2,
 				"platform",
+			),
+		),
+
+		factory.CreateRamp(
+			s.ecs,
+			resolv.NewObject(
+				settings.CellSize*20,
+				gh-(settings.CellSize*3.5),
+				settings.CellSize*4,
+				settings.CellSize*2,
+				"ramp",
 			),
 		),
 	)

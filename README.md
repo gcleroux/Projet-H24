@@ -99,3 +99,10 @@ Le client sera accessible à l'adresse `http://localhost/client/`.
 Le serveur sera accessible à l'adresse `http://localhost/server/`.
 
 _**Note: N'oubliez pas le '/' à la fin du URL. Vous devez absoluement l'inclure pour le bon fonctionnement du reverse-proxy dans le cluster.**_
+
+### Sources
+
+- [Ebiten](https://github.com/hajimehoshi/ebiten)
+- [Donburi](https://github.com/yohamta/donburi)
+- [Airplanes](https://github.com/m110/airplanes)
+- [Resolv](https://github.com/SolarLune/resolv)
