@@ -1,6 +1,6 @@
 ---
-remote_address: localhost
-port: 8888
+remote_address: 34.118.225.103
+port: 8080
 route: /ws
 
 connection:
