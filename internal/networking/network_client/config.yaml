@@ -1,6 +1,6 @@
 ---
-remote_address: 34.118.225.103
-port: 8080
+remote_address: 35.243.185.173
+port: 80
 route: /ws
 
 connection:
