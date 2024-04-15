@@ -1,8 +1,6 @@
 package factory
 
 import (
-	"log"
-
 	"github.com/gcleroux/Projet-H24/internal/game/archetypes"
 	"github.com/gcleroux/Projet-H24/internal/game/components"
 	"github.com/gcleroux/Projet-H24/internal/game/tags"
@@ -13,17 +11,15 @@ import (
 
 func CreateSpace(ecs *ecs.ECS) *donburi.Entry {
 	space := archetypes.Space.Spawn(ecs)
-	settings_entry, ok := tags.Settings.First(ecs.World)
-	if !ok {
-		log.Fatal("Unable to find Settings components")
-	}
+
+	settings_entry := tags.Settings.MustFirst(ecs.World)
 	settings := components.Settings.Get(settings_entry)
 
 	spaceData := resolv.NewSpace(
-		settings.Width,
-		settings.Height,
-		settings.CellSize,
-		settings.CellSize,
+		int(settings.Width),
+		int(settings.Height),
+		int(settings.CellSize),
+		int(settings.CellSize),
 	)
 	components.Space.Set(space, spaceData)
 

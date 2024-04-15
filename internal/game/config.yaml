@@ -8,9 +8,7 @@ game:
       latency_update_frame: 30
 
     grid:
-      cell_size: 16
-      char_width: 16
-      char_height: 32
+      cell_size: 16.0
 
     movement:
       # Settings for character movement

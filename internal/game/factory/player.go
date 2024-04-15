@@ -14,12 +14,21 @@ import (
 func CreatePlayer(ecs *ecs.ECS) *donburi.Entry {
 	player := archetypes.Player.Spawn(ecs)
 
-	// TODO: We could add a resolv tag like "character" or "solid"
-	// TODO: The spawn coords should be assigned by the server
-	obj := resolv.NewObject(32, 128, 16, 24)
-	dresolv.SetObject(player, obj)
-	obj.SetShape(resolv.NewRectangle(0, 0, 16, 24))
+	// Get start coords
+	start := components.StartCoords.Get(components.StartCoords.MustFirst(ecs.World))
+	settings := components.Settings.Get(components.Settings.MustFirst(ecs.World))
 
+	obj := resolv.NewObject(
+		start.X,
+		start.Y,
+		settings.CellSize,
+		settings.CellSize*1.5,
+	)
+	dresolv.SetObject(player, obj)
+	obj.SetShape(resolv.NewRectangle(0, 0, settings.CellSize, settings.CellSize*1.5))
+
+	// The player will publish the position update to the NetClient
+	// The NetClient will then be responsible to send the data to the server
 	pub := nw.NewPublisher[api.PlayerPosition]()
 	pub.AddSubscriber(nw.NetClient.Subscriber)
 

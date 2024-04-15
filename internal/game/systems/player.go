@@ -21,10 +21,16 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		return
 	}
 
+	settingsEntry, ok := components.Settings.First(ecs.World)
+	if !ok {
+		return
+	}
+
 	player := components.Player.Get(playerEntry)
 	playerObject := dresolv.GetObject(playerEntry)
 	movement := components.Movement.Get(playerEntry)
 	kbdMappings := components.KbdInput.Get(playerEntry)
+	settings := components.Settings.Get(settingsEntry)
 
 	player.SpeedY += movement.Gravity
 	if player.WallSliding != nil && player.SpeedY > 1 {
@@ -126,7 +132,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 	// We want to be sure to lock vertical movement to a maximum of the size of the Cells within the Space
 	// so we don't miss any collisions by tunneling through.
 
-	dy = math.Max(math.Min(dy, 16), -16)
+	dy = math.Max(math.Min(dy, settings.CellSize), -settings.CellSize)
 
 	// We're going to check for collision using dy (which is vertical movement speed), but add one when moving downwards to look a bit deeper down
 	// into the ground for solid objects to land on, specifically.
@@ -159,7 +165,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		// width of a cell. This is to ensure the player doesn't slide too far horizontally.)
 
 		if dy < 0 && check.Cells[0].ContainsTags("solid") && ok &&
-			math.Abs(slide.X) <= 8 {
+			math.Abs(slide.X) <= settings.CellSize/2 {
 			// If we are able to slide here, we do so. No contact was made, and vertical speed (dy) is maintained upwards.
 			playerObject.Position.X += slide.X
 		} else {
@@ -219,7 +225,7 @@ func UpdatePlayer(ecs *ecs.ECS) {
 
 				platform := platforms[0]
 
-				if platform != player.IgnorePlatform && player.SpeedY >= 0 && playerObject.Bottom() < platform.Position.Y+4 {
+				if platform != player.IgnorePlatform && player.SpeedY >= 0 && playerObject.Bottom() < platform.Position.Y+movement.MaxSpeed/2 {
 					dy = check.ContactWithObject(platform).Y
 					player.OnGround = platform
 					player.SpeedY = 0

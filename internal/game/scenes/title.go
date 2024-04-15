@@ -74,8 +74,8 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 		screen,
 		"Projet H24 - Guillaume Cléroux",
 		assets.DefaultFont,
-		settings.Width/7,
-		settings.Height/7,
+		int(settings.Width/7),
+		int(settings.Height/7),
 		color.White,
 	)
 
@@ -90,16 +90,16 @@ func (s *TitleScene) Draw(screen *ebiten.Image) {
 			fmt.Sprintln("Debug: "+mappings.ShowDebug.String()),
 		),
 		assets.DefaultFont,
-		settings.Width/3,
-		settings.Height/3,
+		int(settings.Width/3),
+		int(settings.Height/3),
 		color.White,
 	)
 	text.Draw(
 		screen,
 		fmt.Sprintf("Press %s to start", mappings.Jump.String()),
 		assets.DefaultFont,
-		settings.Width/4,
-		settings.Height,
+		int(settings.Width/4),
+		int(settings.Height),
 		color.White,
 	)
 }

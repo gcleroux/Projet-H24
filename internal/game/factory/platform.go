@@ -18,6 +18,7 @@ func CreatePlatform(ecs *ecs.ECS, object *resolv.Object) *donburi.Entry {
 	return platform
 }
 
+// Not used
 func CreateFloatingPlatform(ecs *ecs.ECS, object *resolv.Object) *donburi.Entry {
 	platform := archetypes.FloatingPlatform.Spawn(ecs)
 	dresolv.SetObject(platform, object)
