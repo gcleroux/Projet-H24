@@ -1,6 +1,8 @@
 package components
 
 import (
+	"github.com/gcleroux/Projet-H24/api/v1"
+	nw "github.com/gcleroux/Projet-H24/internal/networking/network_client"
 	"github.com/solarlune/resolv"
 	"github.com/yohamta/donburi"
 )
@@ -15,6 +17,8 @@ type PlayerData struct {
 	WallSliding    *resolv.Object
 	FacingRight    bool
 	IgnorePlatform *resolv.Object
+
+	nw.Publisher[api.PlayerPosition]
 }
 
 var Player = donburi.NewComponentType[PlayerData]()

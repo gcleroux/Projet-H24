@@ -2,7 +2,6 @@ package levels
 
 import (
 	"github.com/gcleroux/Projet-H24/internal/game/components"
-	"github.com/gcleroux/Projet-H24/internal/game/events"
 	"github.com/gcleroux/Projet-H24/internal/game/factory"
 	"github.com/gcleroux/Projet-H24/internal/game/layers"
 	dresolv "github.com/gcleroux/Projet-H24/internal/game/resolv"
@@ -38,7 +37,8 @@ func (s *Level_00_Scene) configure() {
 
 	// Update systems
 	ecs.AddSystem(systems.UpdatePlayer)
-	ecs.AddSystem(systems.UpdateConnection)
+	// ecs.AddSystem(systems.UpdatePeer)
+	// ecs.AddSystem(systems.UpdateConnection)
 	ecs.AddSystem(systems.UpdateObjects)
 	ecs.AddSystem(systems.UpdateSettings)
 
@@ -51,11 +51,11 @@ func (s *Level_00_Scene) configure() {
 	ecs.AddRenderer(layers.LayerDebug, systems.DrawDebug)
 
 	// Events handling
-	events.PeerUpdateEvent.Subscribe(ecs.World, events.PeerUpdateHandler)
-	events.PlayerUpdateEvent.Subscribe(ecs.World, events.PlayerUpdateHandler)
+	// events.PeerUpdateEvent.Subscribe(ecs.World, events.PeerUpdateHandler)
+	// events.PlayerUpdateEvent.Subscribe(ecs.World, events.PlayerUpdateHandler)
 
 	s.ecs = ecs
-	factory.CreateConnection(s.ecs)
+	// factory.CreateConnection(s.ecs)
 	settings := components.Settings.Get(factory.CreateSettings(s.ecs))
 	gw, gh := float64(settings.Width), float64(settings.Height)
 
@@ -81,12 +81,6 @@ func (s *Level_00_Scene) configure() {
 
 		// Create the Player. NewPlayer adds it to the world's Space.
 		factory.CreatePlayer(s.ecs),
-
-		// Create the Peers
-		// TODO: Don't preallocate peers on the scene, or maybe wait for full lobby before loading scene
-		factory.CreatePeer(s.ecs),
-		factory.CreatePeer(s.ecs),
-		factory.CreatePeer(s.ecs),
 
 		// Non-moving floating Platforms.
 		factory.CreatePlatform(s.ecs, resolv.NewObject(352, 64, 48, 8, "platform")),

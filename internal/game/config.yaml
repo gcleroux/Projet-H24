@@ -5,6 +5,7 @@ game:
       width: 640
       height: 360
       resizable: false
+      latency_update_frame: 30
 
     grid:
       cell_size: 16
@@ -28,8 +29,3 @@ game:
     down: S
     jump: SPACE
     show_debug: F1
-
-server:
-  address: localhost
-  port: 8888
-  route: /position

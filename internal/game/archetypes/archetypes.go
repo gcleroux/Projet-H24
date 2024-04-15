@@ -41,9 +41,9 @@ var (
 		tags.Wall,
 		components.Object,
 	)
-	Connection = newArchetype(
-		components.Connection,
-	)
+	// Connection = newArchetype(
+	// 	components.Connection,
+	// )
 	Settings = newArchetype(
 		tags.Settings,
 		components.Settings,

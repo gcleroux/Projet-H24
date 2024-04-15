@@ -3,9 +3,12 @@ package systems
 import (
 	"fmt"
 	"image/color"
+	"log"
 
 	"github.com/gcleroux/Projet-H24/internal/game/components"
 	dresolv "github.com/gcleroux/Projet-H24/internal/game/resolv"
+	nw "github.com/gcleroux/Projet-H24/internal/networking/network_client"
+
 	"github.com/gcleroux/Projet-H24/internal/game/tags"
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
@@ -22,9 +25,18 @@ func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
 	if !settings.ShowDebug {
 		return
 	}
+	CalculateLatency(settings)
+
 	ebitenutil.DebugPrint(
 		screen,
-		fmt.Sprintf("TPS: %0.2f\nFPS: %0.2f", ebiten.ActualTPS(), ebiten.ActualFPS()),
+		fmt.Sprintf(
+			"TPS: %0.2f\nFPS: %0.2f\nClient Latency: %dms\nServer Latency: %dms\nTotal Latency: %dms",
+			ebiten.ActualTPS(),
+			ebiten.ActualFPS(),
+			settings.ClientLatency,
+			settings.ServerLatency,
+			settings.TotalLatency,
+		),
 	)
 
 	playerEntry, ok := tags.Player.First(ecs.World)
@@ -76,4 +88,36 @@ func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
 			vector.StrokeLine(screen, cx, cy+ch, cx, cy, 1.0, drawColor, false)
 		}
 	}
+}
+
+func CalculateLatency(settings *components.SettingsData) {
+	if settings.Ticker < settings.LatencyUpdateFrame {
+		settings.Ticker++
+		log.Print(settings.Ticker)
+		return
+	}
+	// Reset the counters
+	settings.Ticker = 0
+	settings.ClientLatency = 0
+	settings.ServerLatency = 0
+	settings.TotalLatency = 0
+
+	var client int64 = 0
+	var server int64 = 0
+	var total int64 = 0
+	var n int64 = 0
+	for _, peer := range nw.NetClient.Peers {
+		client = client + (peer.ServerT - peer.ClientT)
+		server = server + (peer.TotalT - peer.ServerT)
+		total = total + (peer.TotalT - peer.ClientT)
+		n++
+	}
+	// No peers connected
+	if n < 1 {
+		return
+	}
+	// Calculate the average
+	settings.ClientLatency = client / n
+	settings.ServerLatency = server / n
+	settings.TotalLatency = total / n
 }
