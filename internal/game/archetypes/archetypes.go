@@ -25,11 +25,6 @@ var (
 		components.Movement,
 		components.Object,
 	)
-	Peer = newArchetype(
-		tags.Peer,
-		components.Peer,
-		components.Object,
-	)
 	Ramp = newArchetype(
 		tags.Ramp,
 		components.Object,
@@ -41,9 +36,6 @@ var (
 		tags.Wall,
 		components.Object,
 	)
-	// Connection = newArchetype(
-	// 	components.Connection,
-	// )
 	Settings = newArchetype(
 		tags.Settings,
 		components.Settings,

@@ -271,13 +271,6 @@ func UpdatePlayer(ecs *ecs.ECS) {
 		X: playerObject.Position.X,
 		Y: playerObject.Position.Y,
 	})
-
-	// events.PlayerUpdateEvent.Publish(ecs.World, events.PlayerUpdate{
-	// 	PlayerPosition: api.PlayerPosition{
-	// 		X: playerObject.Position.X,
-	// 		Y: playerObject.Position.Y,
-	// 	},
-	// })
 }
 
 func DrawPlayer(ecs *ecs.ECS, screen *ebiten.Image) {

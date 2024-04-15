@@ -11,21 +11,15 @@ import (
 )
 
 type gameServer struct {
-	serveMux http.ServeMux
-	logf     func(f string, v ...interface{})
-
+	serveMux          http.ServeMux
+	logf              func(f string, v ...interface{})
 	connectionHandler *nw.NetworkServer
-
-	// players   map[uuid.UUID]api.PlayerPosition
-	// playersMu sync.Mutex
 }
 
 func NewGameServer() *gameServer {
 	gs := &gameServer{
 		logf:              log.Printf,
 		connectionHandler: nw.NewNetworkServer(),
-		// players:           make(map[uuid.UUID]api.PlayerPosition),
-		// playersMu:         sync.Mutex{},
 	}
 
 	gs.serveMux.Handle("/ws", http.HandlerFunc(gs.wsHandler))
