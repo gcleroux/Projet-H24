@@ -17,6 +17,8 @@ import (
 	"github.com/yohamta/donburi/ecs"
 )
 
+var taps []ebiten.TouchID
+
 type TitleScene struct {
 	ecs      *ecs.ECS
 	callback func()
@@ -39,7 +41,7 @@ func (s *TitleScene) Update() {
 	}
 	mappings := components.KbdInput.Get(settings_entry)
 
-	if inpututil.IsKeyJustPressed(mappings.Jump) {
+	if inpututil.IsKeyJustPressed(mappings.Jump) || len(inpututil.JustPressedTouchIDs()) > 0 {
 		s.callback()
 		return
 
