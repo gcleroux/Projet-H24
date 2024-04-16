@@ -5,7 +5,9 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"time"
 
 	api "github.com/gcleroux/Projet-H24/api/v1"
@@ -87,16 +89,43 @@ func (n *NetworkClient) Close() {
 }
 
 func (n *NetworkClient) Send(msg api.PlayerPosition) error {
-	// Headers for the message
+	// Populate the necessary headers or fields in the message
 	msg.ID = n.ID
 	msg.ClientT = time.Now().UnixMilli()
 
+	// Marshal the PlayerPosition struct to JSON
 	data, err := json.Marshal(msg)
 	if err != nil {
 		return err
 	}
 
-	return n.Conn.Write(data)
+	// Create an HTTP client
+	client := &http.Client{}
+
+	// Construct the POST request
+	req, err := http.NewRequest("POST", "http://localhost:8888/update", bytes.NewBuffer(data))
+	if err != nil {
+		return err
+	}
+
+	// Set the appropriate headers (e.g., Content-Type)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Send the request
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusAccepted {
+		// Read the response body for more information (optional)
+		respData, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("server returned an error: %s, body: %s", resp.Status, respData)
+	}
+
+	return nil
 }
 
 func (n *NetworkClient) Read() (api.PlayerPosition, error) {

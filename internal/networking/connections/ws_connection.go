@@ -78,31 +78,19 @@ func (c *WSConnection) Close() error {
 	return nil
 }
 
-// func (c *WSConnection) CloseStatus(code websocket.StatusCode, msg string) error {
-// 	c.Closed = true
-// 	if c.Conn != nil {
-// 		if err := c.Conn.Close(websocket.StatusCode(code), msg); err != nil {
-// 			c.logf("[%s] Connection closed failed: %v", c.ID.String(), err)
-// 			return err
-//
-// 		}
-// 		c.logf("[%s] Connection closed.", c.ID.String())
-// 	}
-// }
-
 func (c *WSConnection) Write(msg []byte) error {
-	// ctx, cancel := context.WithTimeout(c.Ctx, c.WriteTimeout)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), c.WriteTimeout)
+	defer cancel()
 
 	// Sending Marshalled data over the wire
-	return c.Conn.Write(c.Ctx, websocket.MessageBinary, msg)
+	return c.Conn.Write(ctx, websocket.MessageBinary, msg)
 }
 
 func (c *WSConnection) Read() ([]byte, error) {
-	// ctx, cancel := context.WithTimeout(c.Ctx, c.ReadTimeout)
-	// defer cancel()
+	ctx, cancel := context.WithTimeout(context.Background(), c.ReadTimeout)
+	defer cancel()
 
-	_, data, err := c.Conn.Read(c.Ctx)
+	_, data, err := c.Conn.Read(ctx)
 
 	return data, err
 }
