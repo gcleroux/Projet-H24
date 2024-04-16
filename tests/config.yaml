@@ -4,8 +4,8 @@ port: 8888
 route: /ws
 
 connection:
-  send_timeout: 500ms
-  read_timeout: 500ms
+  send_timeout: 20ms
+  read_timeout: 20ms
   idle_timeout: 10000ms
 
   # The connection manager can be up to 3 frames late

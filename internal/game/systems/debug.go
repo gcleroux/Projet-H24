@@ -3,7 +3,6 @@ package systems
 import (
 	"fmt"
 	"image/color"
-	"log"
 
 	"github.com/gcleroux/Projet-H24/internal/game/components"
 	dresolv "github.com/gcleroux/Projet-H24/internal/game/resolv"
@@ -93,7 +92,6 @@ func DrawDebug(ecs *ecs.ECS, screen *ebiten.Image) {
 func CalculateLatency(settings *components.SettingsData) {
 	if settings.Ticker < settings.LatencyUpdateFrame {
 		settings.Ticker++
-		log.Print(settings.Ticker)
 		return
 	}
 	// Reset the counters
