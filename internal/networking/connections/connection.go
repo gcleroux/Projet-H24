@@ -1,18 +1,14 @@
 package connections
 
-import (
-	"github.com/gcleroux/Projet-H24/api/v1"
-)
-
 type Connection interface {
-	Dial(addr string)
+	Dial(addr string) error
 
 	// Close the connection.
 	Close() error
 
-	Read() (api.PlayerPosition, error)
+	Read() ([]byte, error)
 
-	Send(msg api.PlayerPosition) error
+	Write(msg []byte) error
 
 	// Get the underlying raw connection object for advanced usage if needed.
 	Raw() interface{}

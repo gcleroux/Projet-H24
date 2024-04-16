@@ -1,6 +1,7 @@
 package network_server
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"sync"
@@ -76,7 +77,12 @@ func (n *NetworkServer) Broadcast(msg api.PlayerPosition) {
 	for id, conn := range n.connections {
 		if id != msg.ID {
 			msg.ServerT = time.Now().UnixMilli()
-			go conn.Send(msg)
+
+			data, err := json.Marshal(msg)
+			if err != nil {
+				log.Fatal(err)
+			}
+			go conn.Write(data)
 		}
 	}
 }

@@ -3,74 +3,108 @@ package connections
 import (
 	"context"
 	"log"
+	"net"
+	"sync"
+	"time"
 
-	"github.com/gcleroux/Projet-H24/api/v1"
 	"github.com/google/uuid"
 	"nhooyr.io/websocket"
-	"nhooyr.io/websocket/wsjson"
 )
 
-// var (
-// 	send_timeout = time.Millisecond * 1000
-// 	read_timeout = time.Millisecond * 1000
-// )
-
 type WSConnection struct {
-	ID   uuid.UUID
-	Conn *websocket.Conn
-	Ctx  context.Context
+	ID uuid.UUID
+
+	*websocket.Conn
+	Ctx          context.Context
+	Closed       bool
+	WriteTimeout time.Duration
+	ReadTimeout  time.Duration
+
+	mu   sync.Mutex
 	logf func(f string, v ...interface{})
 }
 
-func (c *WSConnection) Dial(addr string) {
+func (c *WSConnection) Dial(addr string) error {
 	conn, _, err := websocket.Dial(c.Ctx, addr, nil)
 	if err != nil {
-		log.Fatal(err)
+		c.logf("[%s] Dial failed: %v", c.ID.String(), err)
+		return err
+	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.Closed {
+		c.logf("[%s] Dial failed: %v", c.ID.String(), net.ErrClosed)
+		return net.ErrClosed
 	}
 	c.Conn = conn
+	c.logf("[%s] Connection established: %s", c.ID, addr)
+	return nil
 }
 
 func NewWSConnection() *WSConnection {
 	wsc := &WSConnection{
-		ID:   uuid.New(),
-		Conn: &websocket.Conn{},
-		Ctx:  context.Background(),
+		ID: uuid.New(),
+
+		Conn:   &websocket.Conn{},
+		Ctx:    context.Background(),
+		Closed: false,
+
+		ReadTimeout:  time.Second * 5,
+		WriteTimeout: time.Second * 5,
+
+		mu:   sync.Mutex{},
 		logf: log.Printf,
 	}
 	return wsc
 }
 
 func (c *WSConnection) Close() error {
-	err := c.Conn.CloseNow()
-	if err != nil {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	c.Closed = true
+	if c.Conn == nil {
+		c.logf("[%s] Close failed: %v", c.ID.String(), net.ErrClosed)
+		return net.ErrClosed
+	}
+
+	if err := c.Conn.CloseNow(); err != nil {
+		c.logf("[%s] Close failed: %v", c.ID.String(), err)
 		return err
 	}
+
+	c.logf("[%s] Connection closed", c.ID.String())
 	return nil
 }
 
-func (c *WSConnection) Send(msg api.PlayerPosition) error {
-	// ctx, cancel := context.WithTimeout(c.Ctx, send_timeout)
+// func (c *WSConnection) CloseStatus(code websocket.StatusCode, msg string) error {
+// 	c.Closed = true
+// 	if c.Conn != nil {
+// 		if err := c.Conn.Close(websocket.StatusCode(code), msg); err != nil {
+// 			c.logf("[%s] Connection closed failed: %v", c.ID.String(), err)
+// 			return err
+//
+// 		}
+// 		c.logf("[%s] Connection closed.", c.ID.String())
+// 	}
+// }
+
+func (c *WSConnection) Write(msg []byte) error {
+	// ctx, cancel := context.WithTimeout(c.Ctx, c.WriteTimeout)
 	// defer cancel()
 
-	return wsjson.Write(
-		c.Ctx,
-		c.Conn,
-		msg,
-	)
+	// Sending Marshalled data over the wire
+	return c.Conn.Write(c.Ctx, websocket.MessageBinary, msg)
 }
 
-func (c *WSConnection) Read() (api.PlayerPosition, error) {
-	pp := api.PlayerPosition{}
-
-	// ctx, cancel := context.WithTimeout(ws.Ctx, read_timeout)
+func (c *WSConnection) Read() ([]byte, error) {
+	// ctx, cancel := context.WithTimeout(c.Ctx, c.ReadTimeout)
 	// defer cancel()
 
-	err := wsjson.Read(c.Ctx, c.Conn, &pp)
-	if err != nil {
-		return api.PlayerPosition{}, err
-	}
+	_, data, err := c.Conn.Read(c.Ctx)
 
-	return pp, nil
+	return data, err
 }
 
 func (c *WSConnection) Raw() interface{} {

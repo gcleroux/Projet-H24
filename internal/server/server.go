@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 
+	"github.com/gcleroux/Projet-H24/api/v1"
 	nw "github.com/gcleroux/Projet-H24/internal/networking/network_server"
 	"nhooyr.io/websocket"
 )
@@ -54,11 +56,18 @@ func (gs *gameServer) ws(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	var msg api.PlayerPosition
+
 	for {
-		msg, err := conn.Read()
+		data, err := conn.Read()
 		if err != nil {
 			return err
 		}
+		err = json.Unmarshal(data, &msg)
+		if err != nil {
+			return err
+		}
+
 		gs.connectionHandler.Add(msg.ID, conn)
 		gs.connectionHandler.Broadcast(msg)
 	}

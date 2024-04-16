@@ -3,6 +3,7 @@ package network_client
 import (
 	"bytes"
 	_ "embed"
+	"encoding/json"
 	"fmt"
 	"log"
 	"time"
@@ -32,7 +33,8 @@ func init() {
 }
 
 type NetworkClient struct {
-	Conn  *co.WSConnection
+	ID    uuid.UUID
+	Conn  co.Connection
 	Peers map[uuid.UUID]api.PlayerPosition
 
 	// The WebSocketClient will publish the peer position it gets from the server
@@ -44,6 +46,7 @@ type NetworkClient struct {
 
 func newNetworkClient() *NetworkClient {
 	n := &NetworkClient{
+		ID:    uuid.New(),
 		Conn:  co.NewWSConnection(),
 		Peers: make(map[uuid.UUID]api.PlayerPosition),
 
@@ -58,7 +61,9 @@ func newNetworkClient() *NetworkClient {
 		Cfg.GetString("route"),
 	)
 
-	n.Conn.Dial(dial_addr)
+	if err := n.Conn.Dial(dial_addr); err != nil {
+		log.Fatal(err)
+	}
 
 	// Listen for updates from the Player input
 	go n.Listen(n.Send)
@@ -77,18 +82,35 @@ func newNetworkClient() *NetworkClient {
 	return n
 }
 
-func (n *NetworkClient) Close() error {
-	return n.Conn.Close()
+func (n *NetworkClient) Close() {
+	n.Conn.Close()
 }
 
 func (n *NetworkClient) Send(msg api.PlayerPosition) error {
 	// Headers for the message
-	msg.ID = n.Conn.ID
+	msg.ID = n.ID
 	msg.ClientT = time.Now().UnixMilli()
 
-	return n.Conn.Send(msg)
+	data, err := json.Marshal(msg)
+	if err != nil {
+		return err
+	}
+
+	return n.Conn.Write(data)
 }
 
 func (n *NetworkClient) Read() (api.PlayerPosition, error) {
-	return n.Conn.Read()
+	var msg api.PlayerPosition
+
+	data, err := n.Conn.Read()
+	if err != nil {
+		return api.PlayerPosition{}, err
+	}
+
+	err = json.Unmarshal(data, &msg)
+	if err != nil {
+		return api.PlayerPosition{}, err
+	}
+
+	return msg, nil
 }
